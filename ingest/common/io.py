@@ -32,6 +32,21 @@ def dumps(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    """Read a JSONL file (blank lines skipped).
+
+    Args:
+        path: The file; a missing file reads as empty.
+
+    Returns:
+        The parsed rows.
+    """
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8") as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
 def code_fingerprint(exclude: tuple[str, ...] = ("assembly", "build.py", "tests")) -> str:
     """Fingerprint the converter code that produced an output.
 

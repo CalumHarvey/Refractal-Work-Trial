@@ -11,13 +11,21 @@ Two methods (config split.method): `hash` (a group's split comes from its hash a
 grows) and `balanced` (groups walked largest first, ties in hash order, each put into the split
 furthest below its target share: accurate when a source has few, large groups). Both are deterministic; changing
 `split.salt` reshuffles.
+
+Two per-source exceptions:
+- `method: grid` (InjecAgent): a fully crossed source is one component, so it is split by a grid
+  instead. Each key on the grid axes is hashed to side A or B; A x A -> train, B x B -> test,
+  mixed -> validation.
+- `role: derived` (generated and derived records): followers. They never join the grouping; each
+  takes the split of its seeds (source.derived_from), and is excluded when its seeds disagree.
 """
 import hashlib
 from collections import Counter, defaultdict
 
-from .config import build_config, source_config, source_key
+from .config import build_config, data_kind, is_derived, source_config, source_key
 
-SPLITS = ("train", "validation", "test", "holdout")
+SPLITS = ("train", "validation", "test", "holdout", "diagnostic")
+EXCLUDED = "excluded"  # followers whose seeds sit in different splits; never exported
 AXES = ("task", "trajectory", "attack", "author")
 
 
@@ -126,30 +134,77 @@ def bucket(key: str) -> float:
     return int(digest[:12], 16) / 16 ** 12
 
 
+def grid_side(key: str, b_share: float) -> str:
+    """Put a key on side A or B of a grid split.
+
+    Args:
+        key: A group key, e.g. "injecagent:attack:67902aa294a9".
+        b_share: Share of keys on side B.
+
+    Returns:
+        "B" if the key's salted hash bucket falls below b_share, else "A".
+    """
+    return "B" if bucket(f"grid|{key}") < b_share else "A"
+
+
+def grid_split(rec: dict) -> str:
+    """Split a record of a grid source from the sides of its grid-axis keys.
+
+    Args:
+        rec: A record whose source has `method: grid`.
+
+    Returns:
+        "train" if every grid key is on side A, "test" if every one is on side B, else "validation".
+    """
+    cfg = source_config(source_key(rec))["grid"]
+    gids = rec["source"]["group_ids"]
+    sides = {grid_side(gids[a], cfg["b_share"]) for a in cfg["axes"] if gids.get(a)}
+    return "train" if sides == {"A"} else "test" if sides == {"B"} else "validation"
+
+
+def _is_grid(rec: dict) -> bool:
+    """Check whether a record's source is split by a grid.
+
+    Args:
+        rec: A record.
+
+    Returns:
+        True if its source config has `method: grid`.
+    """
+    return source_config(source_key(rec)).get("method") == "grid"
+
+
 def assign_all(records: list[dict]) -> dict[str, str]:
     """Assign every record to a split, keeping each group in one split across all sources.
 
-    All records are grouped together (see `groups`). A group containing any record of a holdout
+    Real records are grouped together (see `groups`). A group containing any record of a holdout
     source goes to "holdout" whole, so a train source can never share a task, run or attack with
     held-out data (its records in such a group are moved to holdout and counted by
-    `forced_to_holdout`). Remaining groups are assigned source by source in config order: a group
-    already assigned via an earlier source keeps its split, the rest are placed by the configured
-    method using the source's ratios.
+    `forced_to_holdout`). Records of a grid source outside holdout are split by `grid_split`.
+    Remaining groups are assigned source by source in config order: a group already assigned via an
+    earlier source keeps its split, the rest are placed by the configured method using the source's
+    ratios. Finally, followers (role: derived) take their seeds' split (see `follower_split`); those
+    whose seeds disagree get EXCLUDED.
 
     Args:
         records: All records.
 
     Returns:
-        `{record_id: split}`.
+        `{record_id: split}`; a follower may map to EXCLUDED.
     """
     method = build_config()["split"].get("method", "hash")
     is_holdout = lambda r: source_config(source_key(r))["role"] == "holdout"  # noqa: E731
-    group_of = groups(records)
-    held = {group_of[r["record_id"]] for r in records if is_holdout(r)}
-    out = {r["record_id"]: "holdout" for r in records if group_of[r["record_id"]] in held}
+    real = [r for r in records if not is_derived(r)]
+    group_of = groups(real)
+    held = {group_of[r["record_id"]] for r in real if is_holdout(r)}
+    out = {r["record_id"]: "holdout" for r in real if group_of[r["record_id"]] in held}
     by_source = defaultdict(lambda: defaultdict(list))
-    for rec in records:
-        if rec["record_id"] not in out:
+    for rec in real:
+        if rec["record_id"] in out:
+            continue
+        if _is_grid(rec):
+            out[rec["record_id"]] = grid_split(rec)
+        else:
             by_source[source_key(rec)][group_of[rec["record_id"]]].append(rec["record_id"])
     order = [s for s in build_config()["sources"] if s in by_source] + sorted(set(by_source) - set(build_config()["sources"]))
     group_split = {}
@@ -172,7 +227,89 @@ def assign_all(records: list[dict]) -> dict[str, str]:
             group_split[key] = chosen
             counts[chosen] += len(ids)
             out.update({rid: chosen for rid in ids})
+    for rec in records:
+        if is_derived(rec):
+            out[rec["record_id"]] = follower_split(rec, out)[0]
     return out
+
+
+def seed_split(seed: dict, splits: dict[str, str]) -> str | None:
+    """Find the split of one seed of a derived record.
+
+    Args:
+        seed: A `source.derived_from` entry (`dataset`, `role`, `record_id`, `key`).
+        splits: Splits already assigned to real records.
+
+    Returns:
+        The seed record's split; else, for a key, the grid side of a grid source ("train" for A,
+        "test" for B) or the split config `seed_splits` gives its prefix; None if unresolved.
+    """
+    if seed.get("record_id") and seed["record_id"] in splits:
+        return splits[seed["record_id"]]
+    key = seed.get("key")
+    if not key:
+        return None
+    namespace = key.split(":")[0]
+    for source, cfg in build_config()["sources"].items():
+        if source == namespace and cfg.get("method") == "grid":
+            return "train" if grid_side(key, cfg["grid"]["b_share"]) == "A" else "test"
+    for prefix, split_name in (build_config().get("seed_splits") or {}).items():
+        if key.startswith(prefix):
+            return split_name
+    return None
+
+
+def follower_split(rec: dict, splits: dict[str, str]) -> tuple[str, str]:
+    """Decide a derived record's split from its seeds.
+
+    Rules: any seed in holdout -> holdout. A record generated for the diagnostic side
+    (meta.generation.side) goes to "diagnostic" if none of its seeds is in train or validation.
+    Otherwise every seed must resolve to the same split, which the record takes.
+
+    Args:
+        rec: A record of a derived source.
+        splits: Splits already assigned to real records.
+
+    Returns:
+        `(split, reason)`: the split (or EXCLUDED) and a short reason, used in the report.
+    """
+    seeds = rec["source"].get("derived_from") or []
+    if not seeds:
+        return EXCLUDED, "no seeds"
+    found = [seed_split(s, splits) for s in seeds]
+    if None in found:
+        return EXCLUDED, "unresolved seed"
+    if "holdout" in found:
+        return "holdout", "seed in holdout"
+    side = ((rec.get("meta") or {}).get("generation") or {}).get("side")
+    if side == "diagnostic":
+        if {"train", "validation"} & set(found):
+            return EXCLUDED, "diagnostic record with a train or validation seed"
+        return "diagnostic", "diagnostic side"
+    if len(set(found)) > 1:
+        return EXCLUDED, "seeds in different splits: " + ",".join(sorted(set(found)))
+    return found[0], "seeds agree"
+
+
+def follower_report(records: list[dict], splits: dict[str, str]) -> dict:
+    """Summarise how followers were placed.
+
+    Args:
+        records: All records.
+        splits: `{record_id: split}` from `assign_all`.
+
+    Returns:
+        `{"by_source": {source: {split: n}}, "excluded_reasons": {reason: n}}`.
+    """
+    by_source, reasons = defaultdict(Counter), Counter()
+    for rec in records:
+        if not is_derived(rec):
+            continue
+        split_name, reason = follower_split(rec, splits)
+        by_source[source_key(rec)][split_name] += 1
+        if split_name == EXCLUDED:
+            reasons[reason.split(":")[0]] += 1
+    return {"by_source": {k: dict(v) for k, v in by_source.items()}, "excluded_reasons": dict(reasons)}
 
 
 def forced_to_holdout(records: list[dict], splits: dict[str, str]) -> dict:
@@ -186,7 +323,8 @@ def forced_to_holdout(records: list[dict], splits: dict[str, str]) -> dict:
         `{source: n}` for train sources with such records (empty when none).
     """
     return dict(Counter(source_key(r) for r in records
-                        if splits[r["record_id"]] == "holdout" and source_config(source_key(r))["role"] != "holdout"))
+                        if splits[r["record_id"]] == "holdout"
+                        and source_config(source_key(r))["role"] not in ("holdout", "derived")))
 
 
 def _by_hash(key: str, ratios: dict) -> str:
@@ -226,7 +364,12 @@ def leakage(records: list[dict], splits: dict[str, str]) -> dict:
     """
     seen = {kind: defaultdict(lambda: defaultdict(set)) for kind in ("enforced", "informational")}
     for rec in records:
-        bound = set(axes_for(rec)) if source_config(source_key(rec))["role"] != "holdout" else set()
+        if splits[rec["record_id"]] == EXCLUDED:
+            continue
+        if _is_grid(rec) and splits[rec["record_id"]] == "validation":
+            continue  # off-grid cells share keys with train and test by design (see grid_split)
+        role = source_config(source_key(rec))["role"]
+        bound = set(axes_for(rec)) if role not in ("holdout", "derived") else set()
         for axis in AXES:
             key = rec["source"]["group_ids"].get(axis)
             if key and axis != "author":  # author keys are one per benchmark: always shared
@@ -246,19 +389,23 @@ def leakage(records: list[dict], splits: dict[str, str]) -> dict:
 
 
 def split_counts(records: list[dict], splits: dict[str, str]) -> dict:
-    """Count records per split, by source and decision.
+    """Count records per split, by data kind, source and decision.
 
     Args:
         records: All records.
         splits: `{record_id: split}`.
 
     Returns:
-        `{split: {"total": n, "by_source": {...}, "by_decision": {...}}}`.
+        `{split: {"total": n, "by_kind": {"real", "relabelled_real", "synthetic"}, "by_kind_and_decision":
+        {...}, "by_source": {...}, "by_decision": {...}}}`. Every kind is listed, with 0 when absent.
     """
     out = {}
     for name in SPLITS:
         members = [r for r in records if splits[r["record_id"]] == name]
+        kinds = Counter(data_kind(r) for r in members)
         out[name] = {"total": len(members),
+                     "by_kind": {k: kinds.get(k, 0) for k in ("real", "relabelled_real", "synthetic")},
+                     "by_kind_and_decision": dict(Counter(f'{data_kind(r)}:{r["labels"]["decision"]}' for r in members)),
                      "by_source": dict(Counter(source_key(r) for r in members)),
                      "by_decision": dict(Counter(str(r["labels"]["decision"]) for r in members))}
     return out

@@ -1,0 +1,35 @@
+# Settings for the single pipeline command, `python -m pipeline` (see pipeline/README.md).
+# Every value here can be overridden on the command line (python -m pipeline --help).
+
+# Stages run in this fixed order; list the ones a plain `python -m pipeline` runs.
+#   convert     - convert every dataset whose processed output is missing or stale (ingest/run.py)
+#   plan_splits - freeze the real-data splits that generation draws seeds from (ingest/build.py --plan-splits)
+#   libraries   - build the seed libraries from the split plan                   (model calls: none)
+#   proact      - locate PROACT boundaries in ATBench runs                       (model calls: yes)
+#   generate    - generate synthetic injection groups                            (model calls: yes)
+#   build       - convert what changed, then combine everything into data/training/ and data/jev/
+#   deliver     - select by split / kind / dataset and send to Jev (config/deliver.yaml)
+#   experiment  - the MVP experiment on the training view
+stages: [convert, plan_splits, libraries, proact, generate, build, deliver]
+
+proact:
+  run: proact-v1
+  limit: null                 # judge at most this many unsafe runs per invocation (null = all remaining)
+
+generate:
+  run: inject-mvp
+  groups:                     # groups to have in the run per side (existing groups are kept; only new ones are generated)
+    train: 50
+    diagnostic: 0
+
+deliver:
+  run: null                   # delivery folder name (null = a timestamp)
+  dry_run: null               # null = config/deliver.yaml decides
+
+experiment:
+  seeds: 3
+  reference: 0                # rows per licensed set for the Gemini zero-shot reference (0 = skip)
+
+# When a model stage stops on a daily quota: `continue` skips the remaining model stages and still runs
+# build / deliver with the data generated so far (exit code 3 at the end); `stop` ends the pipeline there.
+on_quota: continue

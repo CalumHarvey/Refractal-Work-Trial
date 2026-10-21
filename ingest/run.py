@@ -25,7 +25,7 @@ if __package__ in (None, "") and "__file__" in globals():
 from ingest.common import record as record_mod  # noqa: E402
 from ingest.common.io import Output  # noqa: E402
 from ingest.common.manifest import processed_state  # noqa: E402
-from ingest.common.paths import mappings_version, raw_snapshot  # noqa: E402
+from ingest.common.paths import has_input, mappings_version, raw_snapshot  # noqa: E402
 from ingest.common.validate import problems  # noqa: E402
 import ingest.convert  # noqa: E402
 
@@ -193,6 +193,10 @@ def run_all() -> dict[str, str]:
     """
     results = {}
     for dataset in available_datasets():
+        if not has_input(dataset):  # e.g. a generated dataset that has not been generated yet
+            results[dataset] = "skipped: no input"
+            print(f"skipped {dataset}: no input folder (generate it first)", file=sys.stderr)
+            continue
         try:
             results[dataset] = "ok" if run_one(dataset) else "issues"
         except Exception as exc:  # report and carry on with the next dataset
@@ -249,7 +253,7 @@ def main(argv=None) -> int:
         return 0 if all(r["state"] == "current" for r in status().values()) else 1
     if args.dataset:
         return 0 if run_one(args.dataset) else 1
-    return 0 if all(v == "ok" for v in run_all().values()) else 1
+    return 0 if all(v == "ok" or v.startswith("skipped") for v in run_all().values()) else 1
 
 
 if __name__ == "__main__":

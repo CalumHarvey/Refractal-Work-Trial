@@ -1,0 +1,76 @@
+# Generation configuration (the `generate` package). Model names are placeholders: every LLM role
+# uses the Gemini API free tier for the MVP (user decision 2026-10-21) and is meant to be replaced.
+#
+# Free-tier constraints the code respects:
+# - Google may use prompts and responses to improve its products, and humans may read them. Only
+#   licensed data (TOUCAN, ToolACE, InjecAgent, LLMail-Inject, ATBench) is ever sent. Datasets with
+#   `include: eval_only` in config/build.yaml are never sent (enforced in generate/llm.py).
+# - Terms: "You may not use the Services to develop models that compete with the Services." Check
+#   before generated labels are used beyond the MVP.
+# - Small per-project rate limits (see AI Studio). Every response is cached on disk, calls are
+#   throttled to `requests_per_minute`, and a run stops cleanly on a daily-quota error and resumes
+#   from the cache when started again.
+
+llm:
+  api_key_env: GEMINI_API_KEY
+  endpoint: "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+  cache_dir: data/cache/llm                    # one JSON file per request; delete to force new calls
+  requests_per_minute: 8                       # per model; keep under the project's free-tier limit
+  max_retries: 6                               # on 429 / 5xx, with the server's retry delay or backoff
+  overload_retries: 6                          # 503 "high demand" answers (with backoff) before giving up on a call
+  # Models tried in order when a model stays overloaded or its daily quota runs out. Empty while the
+  # MVP uses a single model (user decision 2026-10-21); the model that answered is recorded on every row.
+  fallbacks: {}
+  timeout_seconds: 120
+
+models:
+  # Every role uses Gemini 3.5 Flash-Lite (user decision 2026-10-21; placeholder, to be replaced).
+  # With one model, the QC judge is the same model as the generator (the plan wanted a different one),
+  # and PROACT's agreement comes from independent samples of the same model (self-consistency) rather
+  # than different models. The served model version is recorded per call.
+  generator: gemini-3.5-flash-lite             # writes the injection and the branches
+  qc_judge: gemini-3.5-flash-lite              # scores each group (temperature 0)
+  boundary_judges:                             # PROACT: each entry is one independent judgement; they must agree
+    - gemini-3.5-flash-lite
+    - gemini-3.5-flash-lite
+    - gemini-3.5-flash-lite
+  boundary_temperature: 0.7                    # > 0 so repeated judgements of one model are independent samples
+  reference_judge: gemini-3.5-flash-lite       # zero-shot reference in the experiment (licensed sets only)
+
+# Which run of each derived or generated dataset the converters read (data/derived/<dataset>/<run>/ or
+# data/generated/<dataset>/<run>/). With a
+# single run present the pin can be left out.
+pins: {}
+
+libraries:
+  # Seed libraries are built from the train side of the split plan only (data/splits/plan.json).
+  contexts:
+    source: toucan
+    require_tool_output: true                  # the injection is planted into the last tool output
+    require_side_effect_tool: true             # the server must offer a tool that writes / sends / pays / deletes
+    max_contexts: 2000
+  attacks:
+    injecagent: { max: 200 }                   # attacker instructions on grid side A (train) / B (diagnostic)
+    llmail_inject:
+      max_per_phase: 1500                      # unique emails whose send reached the attacker (exfil.sent + destination)
+      min_chars: 40
+      max_chars: 2500
+
+proact:
+  run_prefix: proact
+  prompt_version: boundary-v1
+  min_agreeing_judges: 2                       # boundaries need this many judges naming the same step
+  human_sample:
+    test: all                                  # every test-side boundary goes to the human check sheet
+    train: 100                                 # random train-side boundaries for the rule audit
+
+inject:
+  run_prefix: inject
+  prompt_version: inject-v1
+  judge_prompt_version: judge-v1
+  operators: [single_step, new_branch]         # MVP subset of AuraGen's four operators
+  attack_mix: { injecagent: 0.5, llmail_inject: 0.5 }
+  # StepGen-style auditor: six axes scored 0-3; keep >= keep_total with no zero axis.
+  keep_total: 14
+  pilot_groups: 50
+  scale_groups: 1000

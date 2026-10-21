@@ -2,7 +2,7 @@
 # Changing anything here changes the build fingerprint, so `ingest/build.py --status` reports the
 # training view as stale until it is rebuilt.
 
-build_version: "0.1.0"
+build_version: "0.2.0"
 
 # Roles (decided 2026-10-20, option A "train on benchmark data for internal use, move to generated
 # data over time"). Every source is one of:
@@ -10,21 +10,35 @@ build_version: "0.1.0"
 #   holdout  - every record goes to the `holdout` split: never trained on; measures generalisation to
 #              an unseen source. Results on benchmark data are internal only, never comparable to the
 #              benchmarks' published numbers.
+#   derived  - relabelled or synthetic records (source.derived_from). They never join the group split:
+#              each takes the split of its seeds (see `seed_splits`), and a record whose seeds sit in
+#              different splits is excluded and counted in the report (`followers`).
 # A source is a dataset, or dataset/<origin benchmark> where a dataset mixes benchmarks (ToolSafe).
 # Licence gate (2026-10-21, user decision): only datasets whose licence allows use enter the training view.
 # Unlicensed datasets stay downloaded and converted (data/raw, data/processed) but are left out here,
 # until their authors confirm terms. A processed dataset with no entry here is left out as well.
+# include: true      - enters the training view.
+# include: false     - left out.
+# include: eval_only - left out of the training view; usable only by internal evaluation (experiments/),
+#                      never trained on, never used as a generation seed, never sent to an external model.
+# seed: true         - not built itself, but may seed generation (e.g. LLMail-Inject attack text).
+# seeds_from         - derived / generated datasets: admitted only if every listed dataset has
+#                      include: true or seed: true (a derived record inherits its seeds' licences).
 licences:
   atbench:       { licence: Apache-2.0, include: true }
   injecagent:    { licence: MIT, include: true }
-  toolsafe:      { licence: "none (README shows an MIT badge, no LICENSE file)", include: false }
-  r_judge:       { licence: none, include: false }
-  mcptox:        { licence: "none (anonymous and official repos)", include: false }
+  toolsafe:      { licence: "none (README shows an MIT badge, no LICENSE file)", include: eval_only }
+  r_judge:       { licence: none, include: eval_only }
+  mcptox:        { licence: "none (anonymous and official repos)", include: eval_only }
+  llmail_inject: { licence: MIT, include: false, seed: true }        # attack text for generation only (user decision 2026-10-20)
   redcode:       { licence: "CC BY 4.0 (data), MIT (code)", include: true }        # downloaded 2026-10-21, not converted yet
   b3:            { licence: "conflict: README says MIT, LICENSE file is research-only non-commercial", include: false }   # downloaded 2026-10-21
   toucan:        { licence: Apache-2.0, include: true }
   toolace:       { licence: Apache-2.0, include: true }
   when2call:     { licence: CC-BY-4.0, include: true }
+  atbench_steps: { licence: "derived from ATBench (Apache-2.0)", include: true, seeds_from: [atbench] }
+  gen_inject:    { licence: "generated from TOUCAN (Apache-2.0), InjecAgent (MIT), LLMail-Inject (MIT); Gemini terms apply",
+                   include: true, seeds_from: [toucan, injecagent, llmail_inject] }
 
 sources:
   # AgentDojo's attacker constants (the attacker IBAN, phishing links, attacker e-mail addresses) are shared
@@ -39,7 +53,11 @@ sources:
   # InjecAgent is 17 user tasks x 62 attacker instructions, fully crossed, so grouping on task and attack
   # makes it one group: all of it is train. R-Judge's 297 InjecAgent cases are excluded at conversion; R-Judge's
   # injection runs are its evaluation (same user tasks and attacker instructions, different combinations).
-  injecagent:         { role: train, ratios: { train: 1.0 } }
+  # Grid split (MVP, 2026-10-21): user tasks and attacker instructions are each hashed into side A or
+  # B (b_share of keys on side B). A x A -> train, B x B -> test (unseen tasks AND unseen attacks),
+  # A x B and B x A -> validation. Keys are therefore shared between train and validation by design,
+  # never between train and test; the leakage audit checks exactly that for this source.
+  injecagent:         { role: train, method: grid, grid: { axes: [task, attack], b_share: 0.3 } }
   # MCPTox: a server's tool list is shared by all its cases, so the server binds them (`group_by_fields`
   # reads source.original_label.server); generic queries ("get current time") recur across servers and the
   # query-hash task key binds those servers together. Validation and test hold out whole MCP servers.
@@ -51,6 +69,22 @@ sources:
   toolace:            { role: train }
   when2call:          { role: train, group_by_fields: [toolset] }   # BFCL reuses tool sets across paraphrased items
   r_judge:            { role: holdout }      # cleanest human labels: reserved for calibration and evaluation
+  # Derived sources follow their seeds (role: derived). `kind` separates them in every report and row
+  # (default real): relabelled_real = real content, labels located by rules or models (data/derived/);
+  # synthetic = content a model wrote (data/generated/).
+  atbench_steps:      { role: derived, kind: relabelled_real }   # PROACT: each step takes its parent ATBench run's split
+  gen_inject:         { role: derived, kind: synthetic }         # takes the split of its TOUCAN context and attack seeds
+
+# Splits of seeds that are not processed records (source.derived_from entries with a `key` and no
+# record_id), by key prefix. Grid sources resolve their own keys (side A -> train, B -> test).
+seed_splits:
+  "llmail_inject:phase1:": train
+  "llmail_inject:phase2:": diagnostic
+
+# Real-data split plan (`ingest/build.py --plan-splits`): the split of every real record, frozen
+# before generation so that only train-side seeds are used. The build refuses to run if the real
+# records' splits no longer match the plan.
+split_plan: data/splits/plan.json
 
 split:
   # Records sharing a key on ANY of these group_ids axes stay in one split, transitively (connected
@@ -97,6 +131,39 @@ jev:
   tool_list_event: true
   # Datasets have no timestamps: events get base + 1 second per event (deterministic).
   timestamp_base: "2026-01-01T00:00:00Z"
+  # Expected output in Jev's finding schema (refractal.agent-trace-finding.v1). The field names come from
+  # Jev; the shape of `verdicts` ({event_id, decision, target}) and the category values below are assumed
+  # and should be checked against Jev's own definition.
+  finding:
+    threat_categories_on: block                # block: only blocked traces carry categories | any
+  # Failure mode -> Jev threat category (Microsoft AI Red Team taxonomy v2.0 names, snake_case).
+  threat_categories:
+    1: agent_compromise
+    2: agent_injection
+    3: agent_impersonation
+    4: agent_flow_manipulation
+    5: agent_provisioning_poisoning
+    6: multi_agent_jailbreak
+    7: agentic_supply_chain_compromise
+    8: goal_hijacking
+    9: inter_agent_trust_escalation
+    10: cua_visual_attack
+    11: session_context_contamination
+    12: mcp_plugin_abuse
+    13: capability_disclosure
+    14: memory_poisoning
+    15: knowledge_base_poisoning
+    16: cross_domain_prompt_injection
+    17: human_in_the_loop_bypass
+    18: function_compromise
+    19: incorrect_permissions
+    20: resource_exhaustion
+    21: insufficient_isolation
+    22: excessive_agency
+    23: loss_of_data_provenance
+    principal_misuse: principal_misuse
+    hallucination: hallucination
+    misinterpretation: misinterpretation
 
 audit:
   # Strings that must never appear in Jev events (whole word, case-insensitive): they would let a

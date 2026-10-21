@@ -3,8 +3,10 @@
 Usage, from any directory:
     .venv/Scripts/python ingest/build.py             # build from every processed dataset
     .venv/Scripts/python ingest/build.py --status    # are data/training/ and data/jev/ up to date?
+    .venv/Scripts/python ingest/build.py --plan-splits   # freeze the real-data splits for generation
 Output: data/training/{train,validation,test,holdout}.jsonl + report.json + manifest.json, and
-data/jev/<split>/{events.jsonl, expected.jsonl} + manifest.json (Jev replay input and expected findings).
+data/jev/<split>/{events.jsonl, findings.jsonl, index.jsonl} + manifest.json (Jev input, expected Jev
+findings, and a local index linking traces back to records).
 Roles, split ratios, weighting and the licence gate (config `licences`: which processed datasets
 may enter the build) live in config/build.yaml.
 """
@@ -18,9 +20,9 @@ if __package__ in (None, "") and "__file__" in globals():
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ingest.assembly.config import build_fingerprint, licensed_datasets  # noqa: E402
-from ingest.assembly.export import build  # noqa: E402
+from ingest.assembly.build_view import build, plan_splits  # noqa: E402
 from ingest.assembly.load import BuildInputError  # noqa: E402
-from ingest.common.paths import JEV, PROCESSED, TRAINING  # noqa: E402
+from ingest.common.paths import JEV, PROCESSED, TRAINING, has_input  # noqa: E402
 from ingest.run import available_datasets  # noqa: E402
 
 
@@ -60,7 +62,7 @@ def main(argv=None) -> int:
 
     Args:
         argv: Arguments to parse; None uses sys.argv. `--status` only reports whether the training
-            view is up to date.
+            view is up to date; `--plan-splits` only writes the real-data split plan.
 
     Returns:
         Exit code: 0 on a successful build (or a current status), 1 if the inputs are not buildable
@@ -68,10 +70,22 @@ def main(argv=None) -> int:
     """
     parser = argparse.ArgumentParser(description="Build the training view from the processed datasets.")
     parser.add_argument("--status", action="store_true", help="report whether data/training/ is up to date")
+    parser.add_argument("--plan-splits", action="store_true",
+                        help="write the real-data split plan (data/splits/plan.json) that generation reads")
     args = parser.parse_args(argv)
     if args.status:
         return 0 if status()["state"] == "current" else 1
     included, excluded = licensed_datasets(available_datasets())
+    for dataset in [d for d in included if not (PROCESSED / d / "manifest.json").exists() and not has_input(d)]:
+        included.remove(dataset)  # a generated dataset not generated yet
+        excluded[dataset] = "no input yet (generate it, then run ingest/run.py)"
+    if args.plan_splits:
+        try:
+            print(json.dumps(plan_splits(included)))
+        except BuildInputError as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        return 0
     for dataset, reason in excluded.items():
         print(f"left out: {dataset} ({reason})", file=sys.stderr)
     try:
@@ -80,6 +94,7 @@ def main(argv=None) -> int:
         print(exc, file=sys.stderr)
         return 1
     print(json.dumps({name: counts["total"] for name, counts in report["splits"].items()}))
+    print(json.dumps({name: counts["by_kind"] for name, counts in report["splits"].items()}))
     for warning in report["audit"]["warnings"]:
         print(f"audit: {warning}", file=sys.stderr)
     leak = report["leakage"]["enforced_keys_in_several_splits"]

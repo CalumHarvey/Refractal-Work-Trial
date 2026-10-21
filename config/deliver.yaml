@@ -1,0 +1,25 @@
+# Delivery to Jev (the `deliver` package): what is sent and where. It reads data/jev/, which
+# ingest/build.py writes (events in refractal.agent-trace.v1, expected findings in
+# refractal.agent-trace-finding.v1, plus a local index that is never sent).
+#
+# Every key under `selection` can be overridden on the command line (python -m deliver --help).
+
+selection:
+  splits: [train, validation, test]            # holdout and diagnostic (Tier 3, synthetic) are left out by default
+  kinds: [real, relabelled_real, synthetic]    # real datasets | PROACT steps | generated data
+  datasets:
+    include: []                                # empty = every dataset in the selected kinds
+    exclude: []                                # e.g. [toolace]
+
+api:
+  # Placeholder: Jev's ingestion endpoint is not defined yet. Nothing is sent while dry_run is true;
+  # request bodies are written to the delivery folder instead.
+  endpoint: "https://jev.invalid/v1/traces:ingest"
+  api_key_env: JEV_API_KEY                     # the key is read from this environment variable, never stored
+  auth_header: Authorization
+  auth_scheme: Bearer
+  batch_size: 200                              # traces per request
+  timeout_seconds: 60
+  dry_run: true
+
+output_dir: data/delivery                      # one folder per delivery run: request bodies, responses, manifest

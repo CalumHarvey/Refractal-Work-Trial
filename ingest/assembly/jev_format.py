@@ -1,4 +1,5 @@
-"""Records -> Jev input traces (`refractal.agent-trace.v1`) and expected findings.
+"""Records -> Jev input traces (`refractal.agent-trace.v1`) and expected findings
+(`refractal.agent-trace-finding.v1`).
 
 A record becomes one trace. Trace and event ids are opaque (`trace-<hash of record_id>`,
 `<trace_id>-e<n>`) so no dataset name reaches Jev; expected findings carry record_id for the link back. With config
@@ -13,6 +14,11 @@ it has not run. Only `input` is used, so nothing that encodes the answer reaches
 Expected findings use Jev's vocabulary (`allow` / `block`); see config `jev` for how REVIEW and tool
 outputs are treated. The system prompt and agent reasoning have no field in the event schema and are
 left out.
+
+Finding shape (one per trace; field names from Jev's output schema, structure assumed, see config
+`jev.finding`): `schema`, `trace_id`, `event_id` (the planned action; null for a whole-trace record),
+`decision`, `verdicts` (one per labelled event: `event_id`, `decision`, `target`), `data_classes`,
+`threat_categories` (failure modes mapped through `jev.threat_categories`), `shell_impacts`.
 """
 import hashlib
 import json
@@ -22,6 +28,7 @@ from ..common.tools import name_tokens
 from .config import build_config
 
 SCHEMA = "refractal.agent-trace.v1"
+FINDING_SCHEMA = "refractal.agent-trace-finding.v1"
 EMAIL_WORDS = {"email", "mail", "gmail"}
 DECISIONS = {"ALLOW": "allow", "BLOCK": "block"}
 
@@ -86,9 +93,10 @@ def to_trace(rec: dict) -> dict:
 
     Returns:
         `{"trace_id", "events": [...], "target_event_id": str | None, "expected": [...]}`. Each expected item is
-        `{"event_id" or "trace_id", "decision", "source"}`, where source is "decision" (the planned
-        action, or the whole trace for trajectory records) or "adversarial_location" (a tool output
-        holding an injection).
+        `{"event_id" or "trace_id", "decision", "source", "target"}`: source is "decision" (the planned
+        action, or the whole trace for trajectory records) or "adversarial_location" (content holding an
+        injection); target names what was judged: "planned_action", "trace", "tool_list", "tool_result"
+        or "context".
     """
     inp, rid = rec["input"], trace_id(rec["record_id"])
     tools = inp.get("tools_available") or []
@@ -154,17 +162,65 @@ def to_trace(rec: dict) -> dict:
     expected = []
     decision = expected_decision(rec["labels"]["decision"])
     if decision and target:
-        expected.append({"event_id": target, "decision": decision, "source": "decision"})
+        expected.append({"event_id": target, "decision": decision, "source": "decision", "target": "planned_action"})
     elif decision and rec["granularity"] == "trajectory":
-        expected.append({"trace_id": rid, "decision": decision, "source": "decision"})
+        expected.append({"trace_id": rid, "decision": decision, "source": "decision", "target": "trace"})
     locations = rec["labels"]["adversarial_locations"] or []
     if tool_list and 12 in (rec["labels"]["failure_modes"] or []) and any(loc["kind"] == "tool" for loc in locations):
-        expected.append({"event_id": tool_list, "decision": "block", "source": "adversarial_location"})
+        expected.append({"event_id": tool_list, "decision": "block", "source": "adversarial_location", "target": "tool_list"})
     if _cfg()["label_tool_results"]:
         for loc in locations:
             hit = located.get(loc.get("message_index")) if loc["kind"] == "message" else None
             if hit:
                 eid, where = hit
                 expected.append({"event_id": f"{eid}:tool_result" if where == "tool_result" else eid,
-                                 "decision": "block", "source": "adversarial_location"})
+                                 "decision": "block", "source": "adversarial_location",
+                                 "target": "tool_result" if where == "tool_result" else "context"})
     return {"trace_id": rid, "events": events, "target_event_id": target, "expected": expected}
+
+
+def threat_categories(failure_modes: list | None) -> list[str]:
+    """Map a record's failure modes to Jev threat categories.
+
+    Args:
+        failure_modes: The record's failure modes (numbers 1-23 or named modes), or None.
+
+    Returns:
+        Category names from config `jev.threat_categories`, sorted and unique; modes without an entry
+        are left out.
+    """
+    table = {str(k): v for k, v in (_cfg().get("threat_categories") or {}).items()}
+    return sorted({table[str(m)] for m in failure_modes or [] if str(m) in table})
+
+
+def to_finding(rec: dict, trace: dict) -> dict | None:
+    """Build the expected Jev finding (`refractal.agent-trace-finding.v1`) for one trace.
+
+    The trace's decision is the planned action's (or the whole trace's) expected decision; every
+    expected item becomes a verdict. Threat categories come from the record's failure modes, only when
+    the decision is block (config `jev.finding.threat_categories_on`). `data_classes` and `shell_impacts`
+    have no source in the labels yet and are left empty.
+
+    Args:
+        rec: The record the trace was built from.
+        trace: Its trace from `to_trace`.
+
+    Returns:
+        The finding, or None if the record has no expected decision (e.g. REVIEW with review_as exclude).
+    """
+    main = next((x for x in trace["expected"] if x["source"] == "decision"), None)
+    if main is None:
+        return None
+    on = (_cfg().get("finding") or {}).get("threat_categories_on", "block")
+    categories = threat_categories(rec["labels"]["failure_modes"]) if on == "any" or main["decision"] == "block" else []
+    return {
+        "schema": FINDING_SCHEMA,
+        "trace_id": trace["trace_id"],
+        "event_id": trace["target_event_id"],
+        "decision": main["decision"],
+        "verdicts": [{"event_id": x.get("event_id"), "decision": x["decision"], "target": x["target"]}
+                     for x in trace["expected"]],
+        "data_classes": [],
+        "threat_categories": categories,
+        "shell_impacts": [],
+    }

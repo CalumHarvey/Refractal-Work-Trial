@@ -166,6 +166,22 @@ It tests a second focus category and the action-surface shortcut at low cost. Af
 
 ---
 
+## 7a. Models for the MVP (placeholders, to be replaced later)
+
+Every LLM role uses the **Gemini API free tier**, and for now a single model, **Gemini 3.5 Flash-Lite** (user decision 2026-10-21). All model names live in `config/generation.yaml`, so swapping models is a config change.
+
+| Role | Model |
+| --- | --- |
+| PROACT boundary judges (2 of 3 must agree) | Gemini 3.5 Flash-Lite, three independent samples (temperature 0.7) |
+| Generation (planner, rollout, branches) | Gemini 3.5 Flash-Lite |
+| QC judge | Gemini 3.5 Flash-Lite (the plan wanted a different model from the generator; same model for now) |
+| Zero-shot LLM reference on test sets | Gemini 3.5 Flash-Lite |
+
+**Constraints of the free tier:**
+- **Your data may be used and read by Google.** Google may use prompts and responses to improve its products, and human reviewers may read them; the terms say not to send confidential information. The code therefore **never sends unlicensed datasets (ToolSafe, R-Judge, MCPTox) to Gemini**. The LLM reference runs on licensed test sets only.
+- **Terms on competing models.** The terms prohibit using the service "to develop models that compete with the Services". Jev is a guard classifier, not a general model, but check this before generated labels are used beyond the MVP.
+- **Rate limits.** Limits are small and set per project in AI Studio (a few to tens of requests per minute; hundreds to low thousands per day for Flash models). The client caches every response on disk, throttles to the configured requests per minute, and resumes where it stopped. A run of about 13k calls may therefore take several days on the free tier.
+
 ## 8. Sizing: what actually takes the time
 
 An earlier draft said "2–3 weeks". That was a conventional estimate of one engineer writing the code by hand, and it is not a useful measure here. Code is not the bottleneck: the plumbing and converters are small extensions of patterns `ingest/` already has, and they can be written in a few working sessions. Elapsed time is driven by three things:

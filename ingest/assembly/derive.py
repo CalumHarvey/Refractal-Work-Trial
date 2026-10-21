@@ -60,3 +60,44 @@ def effects(rec: dict) -> list[str]:
     if "hallucination" in modes or "misinterpretation" in modes:
         out.add("incorrect_decision_making")
     return sorted(out)
+
+
+SHELL_TOOL_WORDS = ("bash", "shell", "terminal", "execute_command", "run_command", "exec_command", "execute_code",
+                    "run_code", "python_exec", "subprocess")
+
+
+def action_surface(rec: dict) -> str:
+    """Classify the form of the planned action, for the coverage matrix and shortcut audits.
+
+    Args:
+        rec: A record.
+
+    Returns:
+        "none" (no planned action), "final_answer", "shell_or_code" (a shell / code-execution tool,
+        by name), or "tool_call".
+    """
+    action = rec["input"].get("planned_action")
+    if not action:
+        return "none"
+    name = action["tool_name"].lower()
+    if name == "final_answer":
+        return "final_answer"
+    if any(word in name for word in SHELL_TOOL_WORDS):
+        return "shell_or_code"
+    return "tool_call"
+
+
+def context_available(rec: dict) -> str:
+    """Classify what context beyond the history the decision can see.
+
+    Args:
+        rec: A record.
+
+    Returns:
+        "policy_or_memory" if the input carries granted scopes, a system prompt or memory messages,
+        else "history_only".
+    """
+    inp = rec["input"]
+    scopes = (inp.get("principal") or {}).get("granted_scopes")
+    memory = any(m.get("trust") == "memory" for m in inp.get("messages", []))
+    return "policy_or_memory" if scopes or inp.get("system_prompt") or memory else "history_only"

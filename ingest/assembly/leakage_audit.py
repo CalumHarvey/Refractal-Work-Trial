@@ -15,7 +15,7 @@ from collections import Counter, defaultdict
 from ..common.text import normalise
 from .config import build_config, source_key
 
-EVAL_SPLITS = ("validation", "test", "holdout")
+EVAL_SPLITS = ("validation", "test", "holdout", "diagnostic")
 NEAR_DUP_JACCARD = 0.7
 SHORTCUT_MARGIN = 0.15
 

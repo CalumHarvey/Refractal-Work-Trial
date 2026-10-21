@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "agent_decision_record.schema.json",
   "title": "AgentDecisionRecord",
-  "description": "One unified, labelled example for agent security decisions (v0.6.1). A record is one decision point (a planned tool call), or a coarser unit (text, trajectory, outcome) when the source cannot be resolved to a step. Unknown labels are null, never false: null means 'not derivable from this source' and must be masked in training loss. VISIBILITY RULE: only `input` is shown to the model, and `input` may only contain information available at decision time in production. DERIVED, NOT STORED: is_attack = (attack_vector != 'none'); effects are computed at reporting time from failure_modes, action_relation and the planned tool's side_effects; each label's confidence and calibration status are resolved at load time from its provenance rule via dataset_mappings.yaml (calibration.rules, else the rule's prior).",
+  "description": "One unified, labelled example for agent security decisions (v0.7.0). A record is one decision point (a planned tool call), or a coarser unit (text, trajectory, outcome) when the source cannot be resolved to a step. Unknown labels are null, never false: null means 'not derivable from this source' and must be masked in training loss. VISIBILITY RULE: only `input` is shown to the model, and `input` may only contain information available at decision time in production. DERIVED, NOT STORED: is_attack = (attack_vector != 'none'); effects are computed at reporting time from failure_modes, action_relation and the planned tool's side_effects; each label's confidence and calibration status are resolved at load time from its provenance rule via dataset_mappings.yaml (calibration.rules, else the rule's prior).",
   "type": "object",
   "required": ["record_id", "schema_version", "mappings_version", "source", "granularity", "input", "labels", "provenance", "needs_backfill"],
   "additionalProperties": false,
   "properties": {
     "record_id": { "type": "string", "description": "Stable hash of source.dataset + source.original_id + step_index." },
-    "schema_version": { "const": "0.6.1" },
+    "schema_version": { "const": "0.7.0" },
     "mappings_version": { "type": "string", "description": "Version of dataset_mappings.yaml whose rules produced this record; needed to resolve confidences." },
 
     "source": {
@@ -21,6 +21,7 @@
           "enum": ["toolsafe", "llmail_inject", "atbench", "agentdojo", "injecagent", "asb", "mcptox",
                    "r_judge", "wildjailbreak", "qualifire", "jayavibhav", "mcp_safetybench", "os_harm",
                    "toucan", "toolace", "when2call", "redcode", "b3",
+                   "atbench_steps", "gen_inject",
                    "synthetic", "redteam", "production"]
         },
         "dataset_version": { "type": ["string", "null"] },
@@ -41,7 +42,22 @@
         "step_index": { "type": ["integer", "null"], "minimum": 0 },
         "generator_model": { "type": ["string", "null"], "description": "Model that produced the trajectory, for generated runs." },
         "license": { "type": ["string", "null"] },
-        "original_label": { "description": "The source's labels and outcome fields verbatim (e.g. LLMail objectives, InjecAgent attack type), kept for audit, remapping and source-specific statistics." }
+        "original_label": { "description": "The source's labels and outcome fields verbatim (e.g. LLMail objectives, InjecAgent attack type), kept for audit, remapping and source-specific statistics." },
+        "derived_from": {
+          "type": ["array", "null"],
+          "description": "Derived and generated records: the seeds the record was built from. Such records follow their seeds' split instead of joining the group split (config role: derived) and inherit their seeds' licences. Null for records converted directly from a dataset.",
+          "items": {
+            "type": "object",
+            "required": ["dataset", "role"],
+            "additionalProperties": false,
+            "properties": {
+              "dataset": { "type": "string", "description": "Dataset the seed comes from, e.g. toucan, injecagent, llmail_inject, atbench." },
+              "role": { "enum": ["parent", "context", "attack", "action"], "description": "parent = cut from this run (PROACT); context = history and tools the attack was planted into; attack = the attack content; action = a tool or command seed." },
+              "record_id": { "type": ["string", "null"], "description": "The seed's record_id, when the seed is a processed record." },
+              "key": { "type": ["string", "null"], "description": "The seed's group key when it is not a record, e.g. 'injecagent:attack:<hash>' or 'llmail_inject:phase1:<hash>'." }
+            }
+          }
+        }
       }
     },
 
@@ -175,7 +191,27 @@
         "language": { "type": ["string", "null"] },
         "content_hash": { "type": ["string", "null"], "description": "Hash of normalised adversarial/benign text, for cross-dataset dedup." },
         "created_at": { "type": ["string", "null"], "format": "date-time" },
-        "notes": { "type": ["string", "null"] }
+        "notes": { "type": ["string", "null"] },
+        "generation": {
+          "type": ["object", "null"],
+          "description": "Derived and generated records: how the record was produced (family, run, operator, branch, intended side, models, prompt version, judge scores). For audit and ablation; never shown to the model.",
+          "properties": {
+            "family": { "type": "string" },
+            "run": { "type": "string" },
+            "operator": { "type": ["string", "null"] },
+            "branch": { "type": ["string", "null"] },
+            "side": { "enum": ["train", "diagnostic", null] },
+            "generator_model": { "type": ["string", "null"] },
+            "judge_model": { "type": ["string", "null"] },
+            "prompt_version": { "type": ["string", "null"] },
+            "judge_scores": { "type": ["object", "null"] }
+          }
+        },
+        "lineage": {
+          "type": ["object", "null"],
+          "description": "Where each planned-action argument value came from (StepGen lineage tags). Not part of input, because production does not have it.",
+          "additionalProperties": { "enum": ["user", "tool", "system", "agent"] }
+        }
       }
     }
   },

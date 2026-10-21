@@ -1,8 +1,8 @@
-# Agent Decision Record Schema v0.6.0
+# Agent Decision Record Schema v0.7.0
 
-2026-10-20 · Calum
+2026-10-21 · Calum
 
-> Copy of the Claude Doc "Agent Decision Record Schema v0.6.0" (https://claude.ai/code/artifact/635d4c3f-b082-4a7f-84af-38a364963863), exported 2026-10-20, synced to doc rev 55 (mappings v0.6.7, schema v0.6.1). Keep both in sync when the schema changes.
+> Copy of the Claude Doc "Agent Decision Record Schema v0.7.0" (https://claude.ai/code/artifact/635d4c3f-b082-4a7f-84af-38a364963863), exported 2026-10-20, synced 2026-10-21 to doc rev 71 (mappings v0.7.0, schema v0.7.0). Keep both in sync when the schema changes.
 
 ## Purpose
 
@@ -48,15 +48,15 @@ flowchart LR
 
 | Part | Required | Holds |
 | --- | --- | --- |
-| `source` | yes | Dataset, version, original id and split, `group_ids`, step index, generator model, licence, the source's labels verbatim |
+| `source` | yes | Dataset, version, original id and split, `group_ids`, step index, generator model, licence, the source's labels verbatim, and `derived_from` (the seeds of a derived or generated record) |
 | `granularity` | yes | `text`, `step`, `trajectory` or `outcome` |
 | `input` | yes | The decision context (next section) |
 | `labels` | yes | Seven labels; `decision`, `attack_vector` and `failure_modes` must be present, even if null |
 | `provenance` | yes | Origin and rule for every non-null label |
 | `needs_backfill` | yes | Labels a later stage must fill; empty when nothing is pending |
-| `meta` | no | Language, content hash for dedup, creation time, notes |
+| `meta` | no | Language, content hash for dedup, creation time, notes; for derived and generated records `generation` (family, run, operator, branch, side, models, prompt version, judge scores) and `lineage` (where each planned-action argument came from) |
 
-Records also carry `record_id`, `schema_version` (0.6.0) and `mappings_version`, the version of the mappings file whose rules produced them.
+Records also carry `record_id`, `schema_version` (0.7.0) and `mappings_version`, the version of the mappings file whose rules produced them.
 
 ## Input
 
@@ -166,11 +166,11 @@ Records are split by `source.group_ids`, never one record at a time, because the
 
 ### Jev export
 
-- **Opaque ids:** `trace-<sha256(record_id)[:16]>`, with no dataset names; `record_id` appears only in `expected.jsonl`. Traces are ordered by trace id, not record id, because record ids contain file names such as `DPI_attack_success`.
+- **Opaque ids:** `trace-<sha256(record_id)[:16]>`, with no dataset names; `record_id` appears only in the local `index.jsonl`, which is never sent to Jev. Traces are ordered by trace id, not record id, because record ids contain file names such as `DPI_attack_success`.
 - **Planned action last.** It is the final event and has no result.
 - **Tool list as an event.** Each record's tool list is a first `context_read` event (`tools/list`, names and descriptions). It expects `block` only when it holds a poisoned description (mode 12).
 - **REVIEW → block** in Jev. Rows keep their three-way decision.
-- **Weights and confidences** are only in `expected.jsonl`.
+- **Weights and confidences** are only in `index.jsonl`; `findings.jsonl` holds exactly Jev's finding format.
 
 ### Group keys and splitting
 
@@ -182,7 +182,10 @@ Records are split by `source.group_ids`, never one record at a time, because the
   - MCPTox: `group_by_fields: [server]`, because a server's tool list is shared by all its cases.
   - ASB: joined on attack, its groups become its 10 agent domains.
 - **Placement.** Method `balanced`: largest groups first, each into the split furthest below its target share. Deterministic, salt `split-v1`. A group shared by several sources gets one split everywhere.
-- **Licence gate.** Only datasets cleared in config `licences` enter the build; others stay in data/raw and data/processed. Left out now: ToolSafe, R-Judge and MCPTox (no licence) and b3 (research-only licence file).
+- **Licence gate.** Only datasets with `include: true` in config `licences` enter the build. `include: eval_only` (ToolSafe, R-Judge, MCPTox: no licence) keeps a dataset out of training, out of generation seeds and away from external models; only internal evaluation reads it (Tier 2). b3 is left out (research-only licence file). LLMail-Inject is `seed: true`: not built, but its emails may seed generation. A derived dataset declares `seeds_from` and is admitted only if every seed is cleared.
+- **Grid split (InjecAgent).** Its 17 user tasks and 62 attacker instructions are fully crossed, so it is split by a grid: each task and attack key is hashed to side A or B (30% B). A x A is train, B x B is test (unseen tasks and unseen attacks), mixed cells are validation. Train and test never share a key; validation shares keys with both by design.
+- **Followers (derived and generated records).** Records of a `role: derived` source never join the grouping: each takes the split of its seeds (`source.derived_from`): a seed record's split, an InjecAgent attack key's grid side, or `seed_splits` for keys such as `llmail_inject:phase1:`. Seeds in different splits exclude the record (reported under `followers`), so real splits never move and nothing generated can carry a held-out seed into train. Records generated for the diagnostic side go to the `diagnostic` split (Tier 3) only if none of their seeds is in train or validation.
+- **Split plan.** `ingest/build.py --plan-splits` freezes the real records' splits in `data/splits/plan.json` before generation, so seed libraries draw only on the train side. Each build reports drift from the plan.
 - **Holdout wins.** A group that touches a holdout record goes to holdout whole (`forced_to_holdout` in the report; currently 0).
 
 | Source | Role | Split |
@@ -191,9 +194,10 @@ Records are split by `source.group_ids`, never one record at a time, because the
 | ToolSafe AgentDojo | train | by suite: workspace train, travel validation, slack + banking test |
 | ATBench | train | 70/0/30 by task (only trajectory training data) |
 | MCPTox | train | 80/10/10 by server |
-| InjecAgent | train | all train: 17 user tasks x 62 attacker instructions, fully crossed, form one group |
-| R-Judge | holdout | never trained on |
-| ToolSafe AgentHarm | holdout | never trained on |
+| InjecAgent | train | grid: A x A train, A x B and B x A validation, B x B test |
+| ATBench steps (PROACT) | derived | each step follows its parent ATBench run |
+| Generated injections | derived | follow their TOUCAN context and attack seed; held-out seeds -> diagnostic |
+| R-Judge, ToolSafe, MCPTox | eval_only | internal evaluation only (Tier 2); never trained on |
 
 ### Cross-source exclusions, dedup and selection
 
@@ -223,7 +227,7 @@ Records are split by `source.group_ids`, never one record at a time, because the
 ### Current limitations
 
 - **R-Judge is not an unseen-attack test for injection.** All 414 R-Judge injection runs share their user instruction and attacker instruction with InjecAgent train, though never the case. 112 also share InjecAgent's simulated stolen-data response. R-Judge also scores whole runs, so InjecAgent-style reactions have no step-level held-out test.
-- **InjecAgent has no validation or test data.** It is fully crossed, so it cannot be split.
+- **InjecAgent's validation shares keys with train and test.** The grid split keeps train and test apart; the off-grid validation cells reuse tasks or attacks from both by design, so the content audit flags them.
 - **InjecAgent's label follows the tool choice.** Calling any tool other than the user's is BLOCK in 5,131 of 5,131 records, and there is no harmless second-tool call under injection. MCPTox partly offsets this (2,070 ALLOW and 2,134 BLOCK calls to non-poisoned tools).
 - **Final answers are always ALLOW,** in every source except 6 ASB records (4,512 in all). There are no harmful-answer examples, such as leaking data into a reply.
 - **Fixed attack wording can be memorised.** ATBench's planted tool outputs are 5 fixed "SYSTEM NOTE" strings. MCPTox reuses some poisoned tool names across servers (`common_validation`, `security_check`): 31 validation records use one seen in train, and 6 match a train action exactly (REVIEW in both).
@@ -250,6 +254,8 @@ Shared pieces at the top of the file: the decision policy, `origin_from_label_so
 | TOUCAN | step | Benign agent activity (step head) | Ordinary tasks on real MCP servers with real execution: every kept step ALLOW, no attack, by construction (prior 0.8 until an LLM-judge screen). Quality score 3.5 or higher, side-effect calls favoured, split by MCP server |
 | ToolACE | step | Benign function calls (minor share) | Call turns over synthetic APIs → ALLOW, by construction |
 | When2Call | step | Benign call / ask / decline decisions | The correct reply → ALLOW. An unwarranted tool call where asking or declining was right → REVIEW (hallucination / misinterpretation). Grouped by question and tool set |
+| ATBench steps (`atbench_steps`) | step | PROACT unrolling of ATBench (derived) | Safe run: every agent action ALLOW. Unsafe run: the first unsafe planned action (the boundary) is BLOCK with the run's modes; earlier actions ALLOW; later ones dropped. Boundary from ATBench's own markers (`as.boundary_marker`, rule_inferred), else from agreeing Gemini judges (`as.boundary_judges`, model_inferred); a human check overrides both (`as.boundary_human`). Runs with no single unsafe action give no steps. Attack labels only where the attack is already visible in the history |
+| Generated injections (`gen_inject`) | step | Injection, unauthorised calls, benign tool reuse (generated) | A real attack (InjecAgent instruction or LLMail email) planted in a real TOUCAN context's last tool output; one group gives three records sharing the prefix: the attacker's call BLOCK [16, 22], the agent's real next call ALLOW (hard negative), and the attack's tool used for a new ordinary request ALLOW (hard negative). Kept only after rule checks and a judge model |
 | R-Judge | trajectory | Calibration and evaluation only | `label` 0/1 → ALLOW/BLOCK. `attack_type` injection → [16] given (+22 if unsafe; safe ones are hard negatives; the first tool output is marked as the attack location); unintended → no attack, unsafe ones flagged for backfill from `risk_description` |
 
 **Source files** (downloaded 2026-10-20 to `data/raw/<dataset>/<commit>/`, each with a `manifest.json` of checksums):
@@ -331,12 +337,18 @@ The schema validates, but the mappings are a specification for converter scripts
 
   Any group that touches a holdout record goes to holdout whole.
 - [x] Leakage audit (2026-10-20): no record, trace, task, trajectory or attack key in two splits; no shared instruction, history or planned action between train and any evaluation split; no near-duplicate instructions; the tool-name shortcut is gone (it now scores at the class prior); no dataset names in Jev events (AgentHarm's `harmful_toolscontent` folder name removed from tool errors; ATBench agent text quoting `_injected_instruction` neutralised); events ordered by opaque trace id. Known residue: ATBench's planted tool-output text is 5 fixed "SYSTEM NOTE" strings under a `note` key, so ATBench tool-output detection mostly measures recognising those strings.
-- [x] Export in Jev's format: `data/jev/<split>/events.jsonl` (`refractal.agent-trace.v1`, the planned action as the last event) and `expected.jsonl` (allow/block on the planned action, plus block on tool outputs holding an injection). Each record's tool list becomes a first `context_read` event (`tools/list`), which expects block when it holds a poisoned tool description (mode 12). REVIEW is mapped to block (`review_as` in `config/build.yaml`; confirmed by the user on 2026-10-20), since Jev has no review decision.
+- [x] Export in Jev's format: `data/jev/<split>/events.jsonl` (`refractal.agent-trace.v1`, the planned action as the last event) and the expected finding per trace (allow/block on the planned action, plus block on tool outputs holding an injection; since 2026-10-21 in Jev's `refractal.agent-trace-finding.v1` format in `findings.jsonl`, with a local `index.jsonl`). Each record's tool list becomes a first `context_read` event (`tools/list`), which expects block when it holds a poisoned tool description (mode 12). REVIEW is mapped to block (`review_as` in `config/build.yaml`; confirmed by the user on 2026-10-20), since Jev has no review decision.
 - [ ] Run the LLM-judge backfill: 120 records still lack failure modes (mostly R-Judge "unintended" runs).
 - [ ] When converting, measure how many ToolSafe AgentDojo instructions hash-match AgentDojo's own task prompts (a low rate means the normalisation needs widening).
+- [x] MVP pipeline (2026-10-21): schema 0.7.0 (`source.derived_from`, `meta.generation`, `meta.lineage`), grid split for InjecAgent, follower splits for derived records, `eval_only` licence state, split plan, `diagnostic` split, coverage report; `generate` package (Gemini client, seed libraries, PROACT boundaries, injection generation, audit sheets and gates); converters `atbench_steps` and `gen_inject`; experiment in `experiments/mvp`.
+- [ ] Run PROACT over all ATBench runs, fill the human check sheet (all test boundaries + 100 train), Gate P.
+- [ ] Generate the pilot (50 groups), audit every group (Gate 1); scale to about 1,000 planned groups, audit 150–200 (Gate 2); register audited precision in `calibration.rules`.
+- [x] Delivery to Jev (2026-10-21): `data/jev/<split>/findings.jsonl` in `refractal.agent-trace-finding.v1` (decision, verdicts, data_classes, threat_categories from failure modes, shell_impacts); `index.jsonl` keeps record ids, kinds and weights local; `python -m deliver` selects by split, data kind and dataset and sends through a placeholder API client (dry run by default). One command for everything: `python -m pipeline`.
+- [ ] Confirm with Jev the shape of `verdicts`, the threat category names, and the ingestion API (endpoint, auth, request and response shape).
 
 | Version | Change |
 | --- | --- |
+| mappings 0.7.0, schema 0.7.0 | MVP of the generation pipeline: `source.derived_from`, `meta.generation`, `meta.lineage`; `atbench_steps` (PROACT unrolling) and `gen_inject` (generated injections) datasets and rules; InjecAgent grid split; derived sources follow their seeds; `eval_only` licence state for ToolSafe, R-Judge and MCPTox; `diagnostic` split |
 | mappings 0.6.7, schema 0.6.1 | Benign agent activity: TOUCAN, ToolACE and When2Call converters; `source.dataset` enum adds toucan, toolace, when2call, redcode and b3. Build: licence gate (config `licences`) leaves out ToolSafe, R-Judge, MCPTox and b3 |
 | mappings 0.6.6 | MCPTox converted: distinct labelled model reactions, tools parsed from the prompt, Success → BLOCK, Ignored or Refused → ALLOW, Direct Execution → REVIEW, Template-1 handled; task keys by query alone (generic queries recur across servers) |
 | mappings 0.6.5 | InjecAgent converted from the authors' model outputs: distinct reactions only, labels kept only where the first action agrees with the checker, step-2 sends checked against the attacker's address, R-Judge's 297 cases excluded |
