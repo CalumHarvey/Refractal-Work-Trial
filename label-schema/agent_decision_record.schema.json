@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent_decision_record.schema.json",
+  "title": "AgentDecisionRecord",
+  "description": "One unified, labelled example for agent security decisions (v0.6.1). A record is one decision point (a planned tool call), or a coarser unit (text, trajectory, outcome) when the source cannot be resolved to a step. Unknown labels are null, never false: null means 'not derivable from this source' and must be masked in training loss. VISIBILITY RULE: only `input` is shown to the model, and `input` may only contain information available at decision time in production. DERIVED, NOT STORED: is_attack = (attack_vector != 'none'); effects are computed at reporting time from failure_modes, action_relation and the planned tool's side_effects; each label's confidence and calibration status are resolved at load time from its provenance rule via dataset_mappings.yaml (calibration.rules, else the rule's prior).",
+  "type": "object",
+  "required": ["record_id", "schema_version", "mappings_version", "source", "granularity", "input", "labels", "provenance", "needs_backfill"],
+  "additionalProperties": false,
+  "properties": {
+    "record_id": { "type": "string", "description": "Stable hash of source.dataset + source.original_id + step_index." },
+    "schema_version": { "const": "0.6.1" },
+    "mappings_version": { "type": "string", "description": "Version of dataset_mappings.yaml whose rules produced this record; needed to resolve confidences." },
+
+    "source": {
+      "type": "object",
+      "required": ["dataset", "original_id", "group_ids"],
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "enum": ["toolsafe", "llmail_inject", "atbench", "agentdojo", "injecagent", "asb", "mcptox",
+                   "r_judge", "wildjailbreak", "qualifire", "jayavibhav", "mcp_safetybench", "os_harm",
+                   "toucan", "toolace", "when2call", "redcode", "b3",
+                   "synthetic", "redteam", "production"]
+        },
+        "dataset_version": { "type": ["string", "null"] },
+        "original_id": { "type": "string" },
+        "original_split": { "type": ["string", "null"] },
+        "group_ids": {
+          "type": "object",
+          "description": "Leakage-control keys, one per independence axis. Choose the split axis per experiment: task = unseen tasks, attack = unseen attacks, trajectory = minimum (no step of a training run in test), author = unseen attackers. Records sharing the chosen key, across all datasets, must land in the same split. Keys name the UNDERLYING item, namespaced by its origin benchmark (e.g. 'agentdojo:banking/user_task_3'). Null = axis not applicable or unknown.",
+          "required": ["task", "attack", "trajectory", "author"],
+          "additionalProperties": false,
+          "properties": {
+            "task": { "type": ["string", "null"] },
+            "attack": { "type": ["string", "null"] },
+            "trajectory": { "type": ["string", "null"] },
+            "author": { "type": ["string", "null"] }
+          }
+        },
+        "step_index": { "type": ["integer", "null"], "minimum": 0 },
+        "generator_model": { "type": ["string", "null"], "description": "Model that produced the trajectory, for generated runs." },
+        "license": { "type": ["string", "null"] },
+        "original_label": { "description": "The source's labels and outcome fields verbatim (e.g. LLMail objectives, InjecAgent attack type), kept for audit, remapping and source-specific statistics." }
+      }
+    },
+
+    "granularity": {
+      "type": "string",
+      "enum": ["text", "step", "trajectory", "outcome"],
+      "description": "text = content only, no action; step = one planned tool call; trajectory = a whole run; outcome = attack result known but no step to decide on."
+    },
+
+    "input": {
+      "type": "object",
+      "description": "Decision context shown to the model, shaped like the Copilot Studio external threat-detection payload. Every field must be obtainable at decision time in production. Converters normalise source-specific formatting so the dataset of origin is not recognisable from input alone.",
+      "required": ["messages"],
+      "additionalProperties": false,
+      "properties": {
+        "system_prompt": { "type": ["string", "null"] },
+        "user_prompt": { "type": ["string", "null"], "description": "The principal's current request." },
+        "messages": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+        "tools_available": { "type": "array", "items": { "$ref": "#/$defs/tool" } },
+        "planned_action": {
+          "description": "The action under decision. Null for text, trajectory and outcome records.",
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/tool_call" }]
+        },
+        "principal": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "role": { "type": ["string", "null"] },
+            "granted_scopes": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        "modality": { "type": "string", "enum": ["text", "visual", "mixed"], "default": "text" }
+      }
+    },
+
+    "labels": {
+      "type": "object",
+      "required": ["decision", "attack_vector", "failure_modes"],
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "description": "The most severe correct decision within this record's unit. step: the decision for planned_action. trajectory: the worst correct decision across the run (BLOCK if any step should be blocked, REVIEW if the worst is a review, ALLOW if all steps are fine). text / outcome: always null. Step and trajectory decisions train separate heads, each masked to its own granularity.",
+          "oneOf": [{ "type": "null" }, { "enum": ["ALLOW", "REVIEW", "BLOCK"] }]
+        },
+        "attack_vector": {
+          "description": "Where adversarial content entered; 'none' = verified no adversarial content (so is_attack is derived as attack_vector != 'none').",
+          "oneOf": [
+            { "type": "null" },
+            { "enum": ["none", "direct_user", "retrieved_content", "tool_output", "tool_metadata",
+                       "memory", "knowledge_base", "inter_agent", "visual", "provisioning", "multiple"] }
+          ]
+        },
+        "failure_modes": {
+          "type": ["array", "null"],
+          "description": "Multi-label. Integers 1-23 = MS AIRT taxonomy v2.0 security modes (project numbering); 'principal_misuse' = harmful request by the principal (not in the taxonomy); 'hallucination', 'misinterpretation' = the taxonomy's existing-safety modes. Empty array = verified none; null = unknown.",
+          "items": { "$ref": "#/$defs/mode" },
+          "uniqueItems": true
+        },
+        "action_relation": {
+          "description": "How planned_action relates to the principal's task.",
+          "oneOf": [
+            { "type": "null" },
+            { "enum": ["user_task", "injected_task", "deviation", "harmful_user_task", "no_action"] }
+          ]
+        },
+        "outcome": {
+          "type": ["object", "null"],
+          "description": "What actually happened, where the source knows. Source-specific outcome fields (e.g. LLMail defense detection) stay in source.original_label.",
+          "additionalProperties": false,
+          "properties": {
+            "action_executed": { "type": ["boolean", "null"], "description": "The harmful/injected action was actually called." },
+            "goal_achieved": { "type": ["boolean", "null"], "description": "The attacker's or harmful goal was fully achieved." },
+            "user_task_completed": { "type": ["boolean", "null"] }
+          }
+        },
+        "adversarial_locations": {
+          "description": "Where hostile content sits. Label only, never model input. Empty array = verified clean; null = unknown.",
+          "oneOf": [
+            { "type": "null" },
+            { "type": "array", "items": { "$ref": "#/$defs/location" } }
+          ]
+        },
+        "hard_negative": {
+          "type": ["boolean", "null"],
+          "description": "Correct answer is ALLOW but the record looks like a BLOCK: hostile content present yet the action serves the user, risky-looking but authorised, adversarial-looking benign text, or a near-miss twin of a BLOCK record. Evaluation slicing and sampling metadata, never model input."
+        }
+      }
+    },
+
+    "provenance": {
+      "type": "object",
+      "description": "One entry per non-null label: where it came from and which rule wrote it. Confidence and calibration status are NOT stored; they are resolved at load time from `rule` (calibration.rules[rule] if audited, else the rule's prior in dataset_mappings.yaml at mappings_version). An entry carries its own `confidence` only when the method produced a record-specific score (e.g. a judge probability). Every non-null label should have an entry; the converter enforces this.",
+      "additionalProperties": false,
+      "properties": {
+        "decision":              { "$ref": "#/$defs/prov" },
+        "attack_vector":         { "$ref": "#/$defs/prov" },
+        "action_relation":       { "$ref": "#/$defs/prov" },
+        "outcome":               { "$ref": "#/$defs/prov" },
+        "adversarial_locations": { "$ref": "#/$defs/prov" },
+        "hard_negative":         { "$ref": "#/$defs/prov" },
+        "failure_modes": {
+          "type": "array",
+          "description": "One entry per value in labels.failure_modes. For an empty failure_modes list, one entry with mode null recording who verified 'none'.",
+          "items": {
+            "type": "object",
+            "required": ["mode", "origin", "rule"],
+            "additionalProperties": false,
+            "properties": {
+              "mode": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/mode" }] },
+              "origin": { "$ref": "#/$defs/origin" },
+              "rule": { "type": "string" },
+              "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "note": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+
+    "needs_backfill": {
+      "type": "array",
+      "description": "Labels a later pipeline stage must (re)fill, e.g. ['failure_modes']. The only trigger for backfill; confidences are never lowered to cause it. Removed once handled. Empty = nothing pending.",
+      "items": { "enum": ["decision", "attack_vector", "failure_modes", "action_relation", "outcome", "adversarial_locations", "hard_negative"] },
+      "uniqueItems": true
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "language": { "type": ["string", "null"] },
+        "content_hash": { "type": ["string", "null"], "description": "Hash of normalised adversarial/benign text, for cross-dataset dedup." },
+        "created_at": { "type": ["string", "null"], "format": "date-time" },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  },
+
+  "$defs": {
+    "mode": {
+      "oneOf": [
+        { "type": "integer", "minimum": 1, "maximum": 23 },
+        { "enum": ["principal_misuse", "hallucination", "misinterpretation"] }
+      ]
+    },
+    "origin": {
+      "enum": ["given", "by_construction", "human_verified", "rule_inferred", "model_inferred"],
+      "description": "given = the source dataset states it (its annotators, its checker, or its recorded attack type, translated by a table); by_construction = we or the benchmark built the record with this property known; human_verified = checked by a person after conversion; rule_inferred = deduced by a rule from indirect evidence; model_inferred = filled by an LLM judge or classifier. Strength: human_verified > given = by_construction > rule_inferred > model_inferred."
+    },
+    "prov": {
+      "type": "object",
+      "required": ["origin", "rule"],
+      "additionalProperties": false,
+      "properties": {
+        "origin": { "$ref": "#/$defs/origin" },
+        "rule": { "type": "string", "description": "Mapping or backfill rule id (e.g. 'ts.unsafe', 'bf.judge@v1')." },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "Only for record-specific scores; otherwise resolved from the rule." },
+        "note": { "type": ["string", "null"] }
+      }
+    },
+    "location": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["message", "tool", "system_prompt"] },
+        "message_index": { "type": ["integer", "null"], "minimum": 0, "description": "kind=message: index into input.messages." },
+        "tool_name": { "type": ["string", "null"], "description": "kind=tool: name in input.tools_available whose description/metadata is poisoned." },
+        "start": { "type": ["integer", "null"], "minimum": 0, "description": "Optional character offset; null = whole item." },
+        "end": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "message": {
+      "type": "object",
+      "required": ["role", "content", "trust"],
+      "additionalProperties": false,
+      "properties": {
+        "role": { "enum": ["system", "user", "assistant", "tool", "agent"] },
+        "content": { "type": "string" },
+        "trust": {
+          "enum": ["trusted_system", "principal", "agent_generated", "tool_output", "retrieved",
+                   "memory", "inter_agent", "tool_metadata"],
+          "description": "Provenance tag the runtime knows (taxonomy mitigation 5.5)."
+        },
+        "tool_call": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/tool_call" }] },
+        "tool_name": { "type": ["string", "null"], "description": "For role=tool: which tool produced this output." },
+        "agent_id": { "type": ["string", "null"], "description": "For multi-agent records." }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": ["string", "null"] },
+        "parameters_schema": { "type": ["object", "null"] },
+        "origin": { "enum": ["first_party", "mcp", "plugin", "sub_agent", "unknown"], "default": "unknown" },
+        "server": { "type": ["string", "null"] },
+        "side_effects": { "enum": ["read_only", "write", "external_send", "destructive", "financial", "code_exec", "unknown"], "default": "unknown", "description": "From the tool registry (available in production)." }
+      }
+    },
+    "tool_call": {
+      "type": "object",
+      "required": ["tool_name", "arguments"],
+      "additionalProperties": false,
+      "properties": {
+        "tool_name": { "type": "string" },
+        "arguments": { "type": "object" },
+        "reasoning": { "type": ["string", "null"], "description": "Agent's stated rationale, if available." }
+      }
+    }
+  }
+}

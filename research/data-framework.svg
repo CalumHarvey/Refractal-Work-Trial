@@ -1,0 +1,293 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1514 1260" width="1514" height="1260" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#777"/>
+    </marker>
+    <style>
+      .t  { font-size: 11px; fill: #222; text-anchor: middle; }
+      .tb { font-size: 12.5px; font-weight: 600; fill: #111; text-anchor: middle; }
+      .s  { font-size: 10.5px; fill: #333; text-anchor: middle; }
+      .h  { font-size: 12px; font-weight: 700; fill: #333; letter-spacing: 0.4px; }
+      .ln { stroke: #444; stroke-width: 1.4; fill: none; marker-end: url(#ah); }
+      .lg { stroke: #777; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; marker-end: url(#ahg); }
+      .lic   { fill: #e3f2e1; stroke: #3a7d34; }
+      .unl   { fill: #fbe3e1; stroke: #a83a30; }
+      .gen   { fill: #e1ebfb; stroke: #3459a8; }
+      .test  { fill: #fff3d6; stroke: #b07d12; }
+      .ctl   { fill: #eeeeee; stroke: #555; }
+      .tr    { fill: #f3faf1; stroke: #3a7d34; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1514" height="1260" fill="#ffffff"/>
+  <g transform="translate(14,0)">
+
+  <!-- Title -->
+  <text x="20" y="30" style="font-size:20px;font-weight:700;fill:#111">Agent-security data framework</text>
+  <text x="20" y="52" style="font-size:12px;fill:#555">Licence-gated real data → split first → processing and seed libraries → generation (saved plan) → build → three-tier evaluation → loop</text>
+
+  <!-- ===== Row A: licensed data ===== -->
+  <rect x="20" y="66" width="1060" height="140" rx="8" fill="#f7fbf6" stroke="#3a7d34" stroke-dasharray="4 3"/>
+  <text x="30" y="84" class="h">LICENSED REAL DATA: may be trained on and used as generation seeds</text>
+
+  <rect x="30"  y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="100" y="118" class="tb">ATBench</text><text x="100" y="136" class="s">Apache-2.0</text>
+  <text x="100" y="155" class="t">1,000 runs</text><text x="100" y="171" class="t">whole-run labels</text>
+
+  <rect x="180" y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="250" y="118" class="tb">InjecAgent</text><text x="250" y="136" class="s">MIT</text>
+  <text x="250" y="155" class="t">17 tasks × 62 attacks</text><text x="250" y="171" class="t">+ 128k model outputs</text>
+
+  <rect x="330" y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="400" y="118" class="tb">RedCode</text><text x="400" y="136" class="s">CC BY 4.0 (data)</text>
+  <text x="400" y="155" class="t">~1.4k risky Bash/Python</text><text x="400" y="171" class="t">+ Docker harness</text>
+
+  <rect x="480" y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="550" y="118" class="tb">TOUCAN</text><text x="550" y="136" class="s">Apache-2.0</text>
+  <text x="550" y="155" class="t">benign real</text><text x="550" y="171" class="t">MCP-server runs</text>
+
+  <rect x="630" y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="700" y="118" class="tb">ToolACE</text><text x="700" y="136" class="s">Apache-2.0</text>
+  <text x="700" y="155" class="t">benign</text><text x="700" y="171" class="t">function calls</text>
+
+  <rect x="780" y="96" width="140" height="98" rx="6" class="lic"/>
+  <text x="850" y="118" class="tb">When2Call</text><text x="850" y="136" class="s">CC BY 4.0</text>
+  <text x="850" y="155" class="t">ALLOW + non-security</text><text x="850" y="171" class="t">REVIEW (unwarranted call)</text>
+
+  <rect x="930" y="96" width="140" height="98" rx="6" class="lic" stroke-dasharray="5 3"/>
+  <text x="1000" y="118" class="tb">LLMail-Inject</text><text x="1000" y="136" class="s">MIT</text>
+  <text x="1000" y="155" class="t">attack text only</text><text x="1000" y="171" class="t">(not built into records)</text>
+
+  <!-- ===== Row A: unlicensed ===== -->
+  <rect x="1100" y="66" width="380" height="140" rx="8" fill="#fdf5f4" stroke="#a83a30" stroke-dasharray="4 3"/>
+  <text x="1110" y="84" class="h">UNLICENSED: internal evaluation only</text>
+  <rect x="1115" y="96" width="110" height="56" rx="6" class="unl"/>
+  <text x="1170" y="120" class="tb">R-Judge</text><text x="1170" y="138" class="s">no licence</text>
+  <rect x="1235" y="96" width="110" height="56" rx="6" class="unl"/>
+  <text x="1290" y="120" class="tb">ToolSafe</text><text x="1290" y="138" class="s">no licence</text>
+  <rect x="1355" y="96" width="110" height="56" rx="6" class="unl"/>
+  <text x="1410" y="120" class="tb">MCPTox</text><text x="1410" y="138" class="s">no licence</text>
+  <text x="1290" y="174" class="t">never trained on · never used as seeds</text>
+  <text x="1290" y="192" class="s">b3: research-only licence → excluded entirely</text>
+
+  <!-- arrows A -> split -->
+  <line x1="100"  y1="194" x2="100"  y2="226" class="ln"/>
+  <line x1="250"  y1="194" x2="250"  y2="226" class="ln"/>
+  <line x1="400"  y1="194" x2="400"  y2="226" class="ln"/>
+  <line x1="550"  y1="194" x2="550"  y2="226" class="ln"/>
+  <line x1="700"  y1="194" x2="700"  y2="226" class="ln"/>
+  <line x1="850"  y1="194" x2="850"  y2="226" class="ln"/>
+  <line x1="1000" y1="194" x2="1000" y2="226" class="ln"/>
+
+  <!-- ===== Row B: split ===== -->
+  <rect x="20" y="228" width="1060" height="130" rx="8" fill="#fafafa" stroke="#888"/>
+  <text x="30" y="246" class="h">SPLIT FIRST, BY GROUP, BEFORE ANYTHING IS DERIVED</text>
+  <text x="1070" y="246" class="s" style="text-anchor:end">green = train side   ·   amber = held out</text>
+
+  <!-- train row -->
+  <rect x="30"  y="256" width="140" height="42" rx="5" class="tr"/><text x="100" y="274" class="s">70% of runs</text><text x="100" y="289" class="s">→ train</text>
+  <rect x="180" y="256" width="140" height="42" rx="5" class="tr"/><text x="250" y="274" class="s">grid A×A → train</text><text x="250" y="289" class="s">A×B, B×A → validation</text>
+  <rect x="330" y="256" width="140" height="42" rx="5" class="tr"/><text x="400" y="274" class="s">train risk</text><text x="400" y="289" class="s">categories</text>
+  <rect x="480" y="256" width="140" height="42" rx="5" class="tr"/><text x="550" y="274" class="s">train MCP</text><text x="550" y="289" class="s">servers</text>
+  <rect x="630" y="256" width="140" height="42" rx="5" class="tr"/><text x="700" y="274" class="s">train</text><text x="700" y="289" class="s">tasks</text>
+  <rect x="780" y="256" width="140" height="42" rx="5" class="tr"/><text x="850" y="274" class="s">train</text><text x="850" y="289" class="s">toolsets</text>
+  <rect x="930" y="256" width="140" height="42" rx="5" class="tr"/><text x="1000" y="274" class="s">phase 1</text><text x="1000" y="289" class="s">→ training seeds</text>
+
+  <!-- held-out row -->
+  <rect x="30"  y="304" width="140" height="42" rx="5" class="test"/><text x="100" y="322" class="s">30% of runs</text><text x="100" y="337" class="s">→ test</text>
+  <rect x="180" y="304" width="140" height="42" rx="5" class="test"/><text x="250" y="322" class="s">grid B×B</text><text x="250" y="337" class="s">→ test</text>
+  <rect x="330" y="304" width="140" height="42" rx="5" class="test"/><text x="400" y="322" class="s">held-out risk</text><text x="400" y="337" class="s">categories</text>
+  <rect x="480" y="304" width="140" height="42" rx="5" class="test"/><text x="550" y="322" class="s">held-out</text><text x="550" y="337" class="s">servers</text>
+  <rect x="630" y="304" width="140" height="42" rx="5" class="test"/><text x="700" y="322" class="s">held-out</text><text x="700" y="337" class="s">tasks</text>
+  <rect x="780" y="304" width="140" height="42" rx="5" class="test"/><text x="850" y="322" class="s">held-out</text><text x="850" y="337" class="s">toolsets</text>
+  <rect x="930" y="304" width="140" height="42" rx="5" class="test"/><text x="1000" y="322" class="s">phase 2</text><text x="1000" y="337" class="s">→ Tier 3 seeds</text>
+
+  <!-- split -> processing -->
+  <line x1="540" y1="358" x2="540" y2="410" class="ln"/>
+  <text x="552" y="388" class="s" style="text-anchor:start">train-side pieces only</text>
+
+  <!-- ===== Row C: processing ===== -->
+  <rect x="20" y="412" width="1060" height="112" rx="8" fill="#f4f7fd" stroke="#3459a8" stroke-dasharray="4 3"/>
+  <text x="30" y="430" class="h">PROCESSING OF REAL RECORDS</text>
+  <rect x="30" y="440" width="330" height="76" rx="6" class="gen"/>
+  <text x="195" y="460" class="tb">Step-1 converters</text>
+  <text x="195" y="478" class="t">licensed step records → schema records</text>
+  <text x="195" y="494" class="t">label origin: given</text>
+  <rect x="375" y="440" width="330" height="76" rx="6" class="gen"/>
+  <text x="540" y="460" class="tb">PROACT unrolling · ATBench (train and test)</text>
+  <text x="540" y="478" class="t">safe run → every step ALLOW</text>
+  <text x="540" y="494" class="t">unsafe run → first unsafe action BLOCK,</text>
+  <text x="540" y="509" class="t">earlier ALLOW, later dropped · test boundaries human-audited</text>
+  <rect x="720" y="440" width="350" height="76" rx="6" class="gen"/>
+  <text x="895" y="460" class="tb">ToolRosetta re-rendering</text>
+  <text x="895" y="478" class="t">JSON call → shell / Python, both classes</text>
+  <text x="895" y="494" class="t">round-trip checked · label kept</text>
+
+  <!-- processing -> libraries -->
+  <line x1="540" y1="524" x2="540" y2="552" class="ln"/>
+
+  <!-- ===== Row D: seed libraries ===== -->
+  <rect x="20" y="554" width="1060" height="118" rx="8" fill="#f7fbf6" stroke="#3a7d34" stroke-dasharray="4 3"/>
+  <text x="30" y="572" class="h">SEED LIBRARIES: train side only (a derived record inherits its seed's licence and split group)</text>
+  <rect x="30"  y="582" width="252" height="82" rx="6" class="tr"/>
+  <text x="156" y="602" class="tb">Contexts</text>
+  <text x="156" y="621" class="t">TOUCAN train servers, ToolACE,</text>
+  <text x="156" y="637" class="t">ATBench train runs (unrolled)</text>
+  <text x="156" y="653" class="s">real histories and tool lists</text>
+  <rect x="292" y="582" width="252" height="82" rx="6" class="tr"/>
+  <text x="418" y="602" class="tb">Adversarial content</text>
+  <text x="418" y="621" class="t">LLMail phase 1 · InjecAgent A-side</text>
+  <text x="418" y="637" class="t">attacks · RedCode instructions</text>
+  <text x="418" y="653" class="s">text-pool licences pending</text>
+  <rect x="554" y="582" width="252" height="82" rx="6" class="tr"/>
+  <text x="680" y="602" class="tb">Actions</text>
+  <text x="680" y="621" class="t">TOUCAN MCP tool specs</text>
+  <text x="680" y="637" class="t">RedCode train-category commands</text>
+  <rect x="816" y="582" width="254" height="82" rx="6" class="tr"/>
+  <text x="943" y="602" class="tb">Outcomes</text>
+  <text x="943" y="621" class="t">InjecAgent A-side model outputs:</text>
+  <text x="943" y="637" class="t">follow / ignore / refuse ratios</text>
+
+  <!-- libraries -> generation -->
+  <line x1="540" y1="672" x2="540" y2="720" class="ln"/>
+  <text x="552" y="700" class="s" style="text-anchor:start">seeds</text>
+
+  <!-- ===== Row E: generation ===== -->
+  <rect x="20" y="722" width="1060" height="270" rx="8" fill="#f4f7fd" stroke="#3459a8"/>
+  <text x="30" y="740" class="h">GENERATION PIPELINE (saved plan)</text>
+
+  <rect x="40" y="772" width="200" height="80" rx="6" class="ctl"/>
+  <text x="140" y="792" class="tb">Coverage matrix</text>
+  <text x="140" y="810" class="s">mode × channel × decision</text>
+  <text x="140" y="825" class="s">× surface × context</text>
+  <text x="140" y="842" class="s">→ picks thin cells</text>
+
+  <rect x="270" y="772" width="240" height="80" rx="6" class="gen"/>
+  <text x="390" y="792" class="tb">G1 · StepGen planner</text>
+  <text x="390" y="811" class="t">lineage tag on every argument</text>
+  <text x="390" y="827" class="t">(user / tool / system)</text>
+  <text x="390" y="843" class="t">exactly one unsafe anchor</text>
+
+  <rect x="540" y="772" width="240" height="80" rx="6" class="gen"/>
+  <text x="660" y="792" class="tb">G2 · AuraGen operators</text>
+  <text x="660" y="811" class="t">single · multi-step · new branch</text>
+  <text x="660" y="827" class="t">· bridged branch</text>
+  <text x="660" y="843" class="t">cause planted in the input channel</text>
+
+  <rect x="810" y="772" width="240" height="80" rx="6" class="gen"/>
+  <text x="930" y="792" class="tb">G3 · Shared-prefix branches</text>
+  <text x="930" y="811" class="t">BLOCK · refuse · aware-ALLOW</text>
+  <text x="930" y="827" class="t">+ benign run reusing</text>
+  <text x="930" y="843" class="t">the same tools</text>
+
+  <rect x="270" y="884" width="240" height="72" rx="6" class="gen"/>
+  <text x="390" y="903" class="tb">G5 · Executed shell</text>
+  <text x="390" y="921" class="t">RedCode Docker, train categories</text>
+  <text x="390" y="937" class="t">harm-completing action = BLOCK</text>
+  <text x="390" y="952" class="s">+ benign shell twins</text>
+
+  <rect x="540" y="884" width="240" height="72" rx="6" class="gen"/>
+  <text x="660" y="903" class="tb">G4 · Context triples</text>
+  <text x="660" y="921" class="t">policy / persona → ALLOW / REVIEW / BLOCK</text>
+  <text x="660" y="937" class="t">one-fact pairs · modes 17, 19</text>
+  <text x="660" y="952" class="s">the only security REVIEW</text>
+
+  <rect x="810" y="884" width="240" height="72" rx="6" class="gen"/>
+  <text x="930" y="903" class="tb">QC</text>
+  <text x="930" y="921" class="t">rule validator → judge filter</text>
+  <text x="930" y="937" class="t">placebo rewrite of both classes</text>
+  <text x="930" y="952" class="s">dedup · ~30% yield</text>
+
+  <line x1="240" y1="812" x2="268" y2="812" class="ln"/>
+  <line x1="510" y1="812" x2="538" y2="812" class="ln"/>
+  <line x1="780" y1="812" x2="808" y2="812" class="ln"/>
+  <line x1="490" y1="852" x2="575" y2="882" class="ln"/>
+  <line x1="930" y1="852" x2="930" y2="882" class="ln"/>
+  <line x1="780" y1="920" x2="808" y2="920" class="ln"/>
+  <path d="M390,956 L390,974 L870,974 L870,958" class="ln"/>
+
+  <!-- ===== Row F: build ===== -->
+  <rect x="20" y="1010" width="1060" height="114" rx="8" fill="#fafafa" stroke="#888"/>
+  <text x="30" y="1028" class="h">STEP-2 BUILD</text>
+  <rect x="30" y="1040" width="330" height="76" rx="6" class="tr"/>
+  <text x="195" y="1059" class="tb">TRAIN</text>
+  <text x="195" y="1077" class="t">generated + licensed real records</text>
+  <text x="195" y="1093" class="t">groups inherited from seeds</text>
+  <text x="195" y="1109" class="s">start ~1:4 risky : benign · accumulate, never replace</text>
+  <rect x="380" y="1040" width="300" height="76" rx="6" class="tr"/>
+  <text x="530" y="1059" class="tb">VALIDATION</text>
+  <text x="530" y="1077" class="t">InjecAgent A×B and B×A cells</text>
+  <text x="530" y="1093" class="t">train-side group slices</text>
+  <text x="530" y="1109" class="s">all tuning happens here</text>
+  <rect x="700" y="1040" width="370" height="76" rx="6" class="ctl"/>
+  <text x="885" y="1059" class="tb">Human audit · ~200 per rule</text>
+  <text x="885" y="1077" class="t">→ per-rule confidence, calibrated on real</text>
+  <text x="885" y="1093" class="t">given labels (ATBench); R-Judge internal ref.</text>
+  <text x="885" y="1109" class="s">provenance: given · rule/model_inferred · by_construction</text>
+
+  <!-- QC -> build -->
+  <path d="M1050,920 L1066,920 L1066,1000 L195,1000 L195,1038" class="ln"/>
+  <line x1="880" y1="1000" x2="880" y2="1038" class="ln"/>
+
+  <!-- processed real records -> TRAIN (left margin) -->
+  <path d="M20,478 L10,478 L10,1078 L28,1078" class="ln"/>
+  <text x="2" y="760" transform="rotate(-90 2 760)" class="s">processed real records → TRAIN</text>
+
+  <!-- ===== Row G: Jev ===== -->
+  <line x1="195" y1="1116" x2="195" y2="1156" class="ln"/>
+  <rect x="30" y="1158" width="330" height="40" rx="6" class="ctl"/>
+  <text x="195" y="1183" class="tb">Jev export · REVIEW → block</text>
+
+  <!-- ===== Evaluation column ===== -->
+  <text x="1110" y="232" class="h">EVALUATION</text>
+
+  <line x1="1290" y1="206" x2="1290" y2="240" class="ln"/>
+  <rect x="1100" y="242" width="380" height="84" rx="6" class="test"/>
+  <text x="1290" y="263" class="tb">TIER 2 · INTERNAL TRANSFER CHECKS</text>
+  <text x="1290" y="283" class="t">R-Judge · ToolSafe · MCPTox</text>
+  <text x="1290" y="300" class="t">leave-one-source-out against unseen makers</text>
+  <text x="1290" y="316" class="s">internal only · never trained on or seeded</text>
+
+  <!-- held-out pieces route -->
+  <path d="M1080,325 L1090,325 L1090,442 L1098,442" class="ln"/>
+  <path d="M1090,442 L1090,598 L1098,598" class="ln"/>
+
+  <rect x="1100" y="370" width="380" height="150" rx="6" class="test" stroke-width="2"/>
+  <text x="1290" y="391" class="tb">TIER 1 · HEADLINE (real, licensed, held out)</text>
+  <text x="1290" y="413" class="t">ATBench 30% of runs + PROACT step labels</text>
+  <text x="1290" y="429" class="s">(test boundaries human-audited)</text>
+  <text x="1290" y="449" class="t">InjecAgent grid B×B</text>
+  <text x="1290" y="467" class="t">RedCode held-out risk categories</text>
+  <text x="1290" y="485" class="t">Held-out TOUCAN / ToolACE / When2Call</text>
+  <text x="1290" y="501" class="s">→ over-defence on real benign traffic</text>
+
+  <rect x="1100" y="560" width="380" height="84" rx="6" class="test" stroke-dasharray="5 3"/>
+  <text x="1290" y="581" class="tb">TIER 3 · DIAGNOSTIC (synthetic)</text>
+  <text x="1290" y="600" class="t">LLMail phase 2 planted into held-out servers</text>
+  <text x="1290" y="617" class="t">covers cells with no real test data</text>
+  <text x="1290" y="634" class="s">never a headline number</text>
+
+  <line x1="1290" y1="644" x2="1290" y2="688" class="lg"/>
+  <rect x="1100" y="690" width="380" height="96" rx="6" class="ctl" stroke-dasharray="5 3"/>
+  <text x="1290" y="711" class="tb">LOOP</text>
+  <text x="1290" y="730" class="t">per-cell errors (validation) + audit results</text>
+  <text x="1290" y="747" class="t">+ generator-family ablations on Tier 1</text>
+  <text x="1290" y="764" class="t">+ real-vs-generated realism probe</text>
+  <text x="1290" y="779" class="s">→ next targets in the coverage matrix</text>
+
+  <path d="M1100,756 L140,756 L140,770" class="lg"/>
+
+  <!-- ===== Legend ===== -->
+  <g transform="translate(20,1222)">
+    <rect x="0" y="0" width="14" height="14" class="lic"/><text x="20" y="11" style="font-size:11px;fill:#333">licensed real data / train side</text>
+    <rect x="210" y="0" width="14" height="14" class="unl"/><text x="230" y="11" style="font-size:11px;fill:#333">unlicensed (internal evaluation only)</text>
+    <rect x="450" y="0" width="14" height="14" class="test"/><text x="470" y="11" style="font-size:11px;fill:#333">held out / evaluation</text>
+    <rect x="610" y="0" width="14" height="14" class="gen"/><text x="630" y="11" style="font-size:11px;fill:#333">processing and generation</text>
+    <rect x="790" y="0" width="14" height="14" class="ctl"/><text x="810" y="11" style="font-size:11px;fill:#333">control, audit and export</text>
+    <line x1="980" y1="7" x2="1010" y2="7" class="lg"/><text x="1018" y="11" style="font-size:11px;fill:#333">feedback loop</text>
+  </g>
+  </g>
+</svg>

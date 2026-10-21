@@ -1,0 +1,34 @@
+{
+  "dataset": "when2call",
+  "source": "https://huggingface.co/datasets/nvidia/When2Call (all files)",
+  "license": "CC BY 4.0 (dataset card)",
+  "revision": "0582f7749df63a96fdc3070932e83e72396ace53",
+  "downloaded_at": "2026-10-21T11:00:57+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5038,
+      "sha256": "14217217ba73b9421b5c8ac9b35b0c210836212ea007b65ec866513fdb67aa75"
+    },
+    {
+      "path": "test/when2call_test_llm_judge.jsonl",
+      "bytes": 1757306,
+      "sha256": "0b710578e3b02479e5acf5688140ec5edf71383fa5c093481c7536b57fd13b25"
+    },
+    {
+      "path": "test/when2call_test_mcq.jsonl",
+      "bytes": 20424385,
+      "sha256": "8c3694e583eeeb8dbc297e6cd90da70efc68efa4b6adb7227523e828c6b7b14c"
+    },
+    {
+      "path": "train/when2call_train_pref.jsonl",
+      "bytes": 17369692,
+      "sha256": "d90637f108fabf1b097493c5818c3692e1d73140259d2f8e490536255e765bc4"
+    },
+    {
+      "path": "train/when2call_train_sft.jsonl",
+      "bytes": 23867125,
+      "sha256": "3eb20258557513579995ff55c09fcc33fabf2cd2004dea49dc3a0ba9880e631c"
+    }
+  ]
+}

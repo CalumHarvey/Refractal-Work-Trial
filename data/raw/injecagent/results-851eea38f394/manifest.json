@@ -1,0 +1,15 @@
+{
+  "dataset": "injecagent_results",
+  "source": "https://drive.google.com/file/d/1OptmQBPQ4uLRUNv95ak2fRJF7BN4xOws (linked from the InjecAgent README at f19c9f2: 'Release all model outputs', 07/01/2024)",
+  "revision": "results-851eea38f394",
+  "license": "MIT (same repository's LICENCE; not restated in the archive)",
+  "downloaded_at": "2026-10-20T17:06:32+00:00",
+  "notes": "Kept zipped exactly as downloaded (333 MB unpacked: 245 JSON-lines files, no other file types, no unsafe paths). Read with zipfile; do not extract into OneDrive.",
+  "files": [
+    {
+      "path": "results.zip",
+      "bytes": 37804110,
+      "sha256": "851eea38f394620de4724ce80dc50df8dd2d3cac3e196dcacb0b2ad90b2299cb"
+    }
+  ]
+}

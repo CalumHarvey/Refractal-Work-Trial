@@ -1,0 +1,106 @@
+# Step 2 build configuration: how processed datasets become the training view (data/training/).
+# Changing anything here changes the build fingerprint, so `ingest/build.py --status` reports the
+# training view as stale until it is rebuilt.
+
+build_version: "0.1.0"
+
+# Roles (decided 2026-10-20, option A "train on benchmark data for internal use, move to generated
+# data over time"). Every source is one of:
+#   train    - group-split into train / validation / test by `ratios` (in-distribution evaluation)
+#   holdout  - every record goes to the `holdout` split: never trained on; measures generalisation to
+#              an unseen source. Results on benchmark data are internal only, never comparable to the
+#              benchmarks' published numbers.
+# A source is a dataset, or dataset/<origin benchmark> where a dataset mixes benchmarks (ToolSafe).
+# Licence gate (2026-10-21, user decision): only datasets whose licence allows use enter the training view.
+# Unlicensed datasets stay downloaded and converted (data/raw, data/processed) but are left out here,
+# until their authors confirm terms. A processed dataset with no entry here is left out as well.
+licences:
+  atbench:       { licence: Apache-2.0, include: true }
+  injecagent:    { licence: MIT, include: true }
+  toolsafe:      { licence: "none (README shows an MIT badge, no LICENSE file)", include: false }
+  r_judge:       { licence: none, include: false }
+  mcptox:        { licence: "none (anonymous and official repos)", include: false }
+  redcode:       { licence: "CC BY 4.0 (data), MIT (code)", include: true }        # downloaded 2026-10-21, not converted yet
+  b3:            { licence: "conflict: README says MIT, LICENSE file is research-only non-commercial", include: false }   # downloaded 2026-10-21
+  toucan:        { licence: Apache-2.0, include: true }
+  toolace:       { licence: Apache-2.0, include: true }
+  when2call:     { licence: CC-BY-4.0, include: true }
+
+sources:
+  # AgentDojo's attacker constants (the attacker IBAN, phishing links, attacker e-mail addresses) are shared
+  # by every injection in a suite, whatever its wording, so the suite is the unit: `coarsen` cuts task keys
+  # to "agentdojo:<suite>". workspace (855 of 1,220 records) is train; the other suites are evaluation.
+  toolsafe/agentdojo: { role: train, coarsen: { task: 2 }, ratios: { train: 0.7, validation: 0.15, test: 0.15 } }
+  toolsafe/asb:       { role: train }
+  toolsafe/agentharm: { role: holdout }      # ToolSafe's test data; AgentHarm is released as a public test set
+  # ATBench's attack key is a coarse risk category (9 values), not a specific attack, so it does not bind
+  # records together: grouping on it would hold out whole categories.
+  atbench:            { role: train, ratios: { train: 0.7, validation: 0.0, test: 0.3 }, axes: [task, trajectory] }   # only trajectory training data
+  # InjecAgent is 17 user tasks x 62 attacker instructions, fully crossed, so grouping on task and attack
+  # makes it one group: all of it is train. R-Judge's 297 InjecAgent cases are excluded at conversion; R-Judge's
+  # injection runs are its evaluation (same user tasks and attacker instructions, different combinations).
+  injecagent:         { role: train, ratios: { train: 1.0 } }
+  # MCPTox: a server's tool list is shared by all its cases, so the server binds them (`group_by_fields`
+  # reads source.original_label.server); generic queries ("get current time") recur across servers and the
+  # query-hash task key binds those servers together. Validation and test hold out whole MCP servers.
+  mcptox:             { role: train, group_by_fields: [server] }
+  # Benign agent activity (2026-10-21). TOUCAN runs share MCP servers: whole servers are held out
+  # (`group_by_fields` reads source.original_label.servers, one key per server). ToolACE and When2Call
+  # group by question (task) and run (trajectory) as usual.
+  toucan:             { role: train, group_by_fields: [servers] }
+  toolace:            { role: train }
+  when2call:          { role: train, group_by_fields: [toolset] }   # BFCL reuses tool sets across paraphrased items
+  r_judge:            { role: holdout }      # cleanest human labels: reserved for calibration and evaluation
+
+split:
+  # Records sharing a key on ANY of these group_ids axes stay in one split, transitively (connected
+  # components). Splitting on task alone (until 2026-10-20) let attacks recur across splits: ASB's
+  # attacker tools (e.g. "PriceManipulation", always BLOCK) were in train and test, and the planned
+  # tool's name alone scored 0.99 on test. With attack included, ASB's groups are its 10 agent domains
+  # and AgentDojo's are its suites, so validation / test measure unseen domains and unseen attacks.
+  # Override per source with `axes`.
+  axes: [task, trajectory, attack]
+  fallback_axes: []                          # used when a record has no key on any axis (then its record_id)
+  salt: "split-v1"                           # change only to deliberately reshuffle every split
+  ratios: { train: 0.8, validation: 0.1, test: 0.1 }   # default for role: train
+  # balanced: walk a source's groups largest first (ties in hash order) and put each into the split furthest below its
+  #   target record share. Needed while sources have few, large groups (ASB: 10 domains of 195-683
+  #   steps; AgentDojo: 7 groups, workspace alone 855 of 1,220), where pure hashing misses the targets.
+  # hash: each group's split comes from its hash alone; stable as data grows, accurate only with
+  #   many small groups (switch to it once generated data dominates).
+  method: balanced
+
+weights:
+  # Training weight = label confidence of the decision x source balance x class balance (x hard-negative
+  # multiplier). Balance factors are computed per head (step / trajectory) on the train split only and
+  # clipped to [min_factor, max_factor]; records in other splits get weight 1.
+  balance_sources: true                      # each source contributes equal total weight within a head
+  balance_decisions: true                    # within a source, each decision class contributes equally
+  hard_negative_multiplier: 2.0
+  min_factor: 0.25
+  max_factor: 4.0
+
+jev:
+  # Each record becomes a trace of `refractal.agent-trace.v1` events; the planned action is the
+  # last event (a tool call with no result yet). Expected decisions use Jev's vocabulary.
+  input_schema: "refractal.agent-trace.v1"
+  # Jev has allow / block / mutate and no review; `mutate` means "modify the action", which is not
+  # what REVIEW means. REVIEW records keep their original decision in the row (`decision`); this
+  # only sets the expected Jev decision. Options: block | allow | exclude (no expected finding).
+  review_as: block
+  # Tool outputs that contain an injection (labels.adversarial_locations) get an extra expected
+  # finding: `block` on "<event_id>:tool_result", which Jev evaluates as untrusted content.
+  label_tool_results: true
+  # The record's tool list as a first `context_read` event ("tools/list": names and descriptions), as an
+  # MCP client receives it. Tool-description poisoning (mode 12: MCPTox, ATBench) is only visible there,
+  # so such traces also expect `block` on this event.
+  tool_list_event: true
+  # Datasets have no timestamps: events get base + 1 second per event (deterministic).
+  timestamp_base: "2026-01-01T00:00:00Z"
+
+audit:
+  # Strings that must never appear in Jev events (whole word, case-insensitive): they would let a
+  # model recognise the source benchmark or the data generator instead of judging the content.
+  markers: [atbench, toolsafe, ts-bench, r_judge, r-judge, rjudge, agentdojo, agentharm, injecagent, asb,
+            _injected_instruction, _system_warning, harmful_toolscontent, benign_toolscontent, harmful_steps,
+            benign_steps, attack_success, atttack_failure]

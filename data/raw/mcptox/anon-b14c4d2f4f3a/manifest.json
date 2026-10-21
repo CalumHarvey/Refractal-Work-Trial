@@ -1,0 +1,25 @@
+{
+  "dataset": "mcptox",
+  "source": "https://anonymous.4open.science/r/AAAI26-7C02 (the release link in arXiv 2508.14925; anonymous review repo, no commit id: revision = hash of the downloaded files)",
+  "license": "UNSTATED: anonymous repo, no LICENSE file",
+  "not_downloaded": "def_tool/ (one .py tool definition per case, untrusted code; the same tool text is in pure_tool.json and response_all.json) and analysis.ipynb (authors' analysis notebook)",
+  "revision": "anon-b14c4d2f4f3a",
+  "downloaded_at": "2026-10-20T17:01:56+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 9,
+      "sha256": "e248937f34abe5a7789cccf8be3046e05266c88cc6fefc51a5e7dc3301b95007"
+    },
+    {
+      "path": "pure_tool.json",
+      "bytes": 316620,
+      "sha256": "54b1eb0e9d7b2f18465266aa9d9dfda828cd558b1269b74731ec2c5d8579e617"
+    },
+    {
+      "path": "response_all.json",
+      "bytes": 20666873,
+      "sha256": "79a90049be931c59e71446d6180b1d7f0d196d123d08a59bc155d142b5041c03"
+    }
+  ]
+}

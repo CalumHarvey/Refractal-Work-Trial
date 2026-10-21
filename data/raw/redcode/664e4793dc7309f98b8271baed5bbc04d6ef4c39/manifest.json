@@ -1,0 +1,1205 @@
+{
+  "dataset": "redcode",
+  "source": "https://github.com/AI-secure/RedCode (folders dataset/ and evaluation/ plus README and LICENSE; sparse checkout)",
+  "license": "dataset/: CC BY 4.0 (dataset/LICENSE); code incl. evaluation/: MIT (LICENSE)",
+  "notes": "evaluation/ holds the authors' per-scenario checking scripts; kept as reference for how outcomes are judged, never executed",
+  "revision": "664e4793dc7309f98b8271baed5bbc04d6ef4c39",
+  "downloaded_at": "2026-10-21T10:48:28+00:00",
+  "files": [
+    {
+      "path": "dataset/LICENSE",
+      "bytes": 19408,
+      "sha256": "c32d4490642570c61565505875b920fc6c0131f9f13e34341166c24b3ed805e7"
+    },
+    {
+      "path": "dataset/README.md",
+      "bytes": 430,
+      "sha256": "d7843ffae0d71fa965cbc59dc5b77fde641c557cfe615c7c8f68cbd1ab80b1c3"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index12_30_codes_full_upd.json",
+      "bytes": 75549,
+      "sha256": "c39c3327a8ac8b0c819bf3ff074d3d149de596908325b283f0785528bd4510a2"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index13_30_codes_full_upd.json",
+      "bytes": 48774,
+      "sha256": "fef05d0f06f465e39c2f2804903a286926111ccebf5821ef3bc3ee289072d989"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index14_30_codes_full_upd.json",
+      "bytes": 61305,
+      "sha256": "a4e7e9b377352fc0bb0009f9ed30ae2e2f7b1b9845863089e32279116401c73f"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index15_30_codes_full_upd.json",
+      "bytes": 46558,
+      "sha256": "0e62bbd41a3eee130df56c188273d85100c6a68df2a9643263b1ffcccff8d84c"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index16_30_codes_full_upd.json",
+      "bytes": 63514,
+      "sha256": "ab8b355daadff6ff1b1b9ab1eab293dfc5efba4230959e3f61038052dbff0edd"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index18_30_codes_full_upd.json",
+      "bytes": 69883,
+      "sha256": "e8c479b3ad7d56d67b42370548f928c50eee2892dfaf031df78e3e606573aa8d"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index1_30_codes_full_upd.json",
+      "bytes": 70105,
+      "sha256": "647631b223131d80becc1770acef2f30cef6c1c63b0bf5568e16871a55a27e8a"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index20_30_codes_full_upd.json",
+      "bytes": 53301,
+      "sha256": "c7e6b11dd90a1886edd4d81ad773a42ca5e7d3d007e2f8d35095949034b54664"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index21_30_codes_full_upd.json",
+      "bytes": 91240,
+      "sha256": "b94c6968458e1c4b1a97e8e1e38dab4f9963ec0518f2bd91584a92dc0334d363"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index22_30_codes_full_upd.json",
+      "bytes": 63806,
+      "sha256": "66c46a45eb86da3b5fef5fcfb3f0eb4f08ec185d157ca7a646d6af5af1bd9b12"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index23_30_codes_full_upd.json",
+      "bytes": 90508,
+      "sha256": "1a8f8819602ff6bbd41919717d61fddf314da6f85aaca487bb0281f93f951592"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index25_30_codes_full_upd.json",
+      "bytes": 70072,
+      "sha256": "9a839ef365f47e3d6393efb7a11b98b945cd3804e9727a2b8434e0b290df9950"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index2_30_codes_full_upd.json",
+      "bytes": 34768,
+      "sha256": "f6c75ce9b77b9a3ffefea75d5f5a64c71c7c9826a8d18a7f3e60605d955083d0"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index3_30_codes_full_upd.json",
+      "bytes": 40729,
+      "sha256": "460bb36d0fcf07dbecfca2bce9954cc90669f5549c4c740fa5b8a97be0ed0652"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index4_30_codes_full_upd.json",
+      "bytes": 32572,
+      "sha256": "3cb4224f0c800a859214db5e426cb042c2a94f66e6c35e2d4f842f40abab1551"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index5_30_codes_full_upd.json",
+      "bytes": 29525,
+      "sha256": "0856b1859dc52e0de4540887eb02b5c6105b45afd9f1d4da2e41625d2b8ac5e0"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index6_30_codes_full_upd.json",
+      "bytes": 42061,
+      "sha256": "412f615b109c9bcdc064b052768b86f8e9fe1618827aac60bcb83c2977d325a0"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index7_30_codes_full_upd.json",
+      "bytes": 29703,
+      "sha256": "1cd278309f8fa12b59fd1f3b5f8666cfcea907853d221ac1c837ac764d5da2f1"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index8_30_codes_full_upd.json",
+      "bytes": 22436,
+      "sha256": "eb8848542606bed2b139dd74a8bb5ed0f6bf21d436d72b0077817b3e62080897"
+    },
+    {
+      "path": "dataset/RedCode-Exec/bash2text_dataset_json/index9_30_codes_full_upd.json",
+      "bytes": 42001,
+      "sha256": "c71d802632137ba8f418a263f685353c1a9a72125f386aa0219a93d4a07e641a"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index10_30_codes_full.json",
+      "bytes": 100871,
+      "sha256": "29b5fb7b894f6977336b04badba084de227b7640fda6773ad2df58c09ff61496"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index11_30_codes_full.json",
+      "bytes": 70994,
+      "sha256": "430ed532708987941c468eb111418599e42d2427c626cedd26094af2dab64527"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index12_30_codes_full.json",
+      "bytes": 83279,
+      "sha256": "146aa5e391882cfc8415d1a6eccdba826d440d05fb9ee7d84f0b0c2084e5884e"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index13_30_codes_full.json",
+      "bytes": 42722,
+      "sha256": "2730daf9cb58b8b09dcf2ab101f5ddd936cea81a09b8588330694b15998936b6"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index14_30_codes_full.json",
+      "bytes": 54491,
+      "sha256": "51b6584d00860596f4b6c7b584cfcb5ae668b91d69c46cd78238e8174124054e"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index15_30_codes_full.json",
+      "bytes": 58210,
+      "sha256": "bfd07d31d553facc39691e84640938cff25244cabcab5aa7a93b09ae8957ff47"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index16_30_codes_full.json",
+      "bytes": 62828,
+      "sha256": "954b2d252ad3d425a80efa926039b7b65a655db7c768be111ce5b46741a7b01f"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index17_30_codes_full.json",
+      "bytes": 85656,
+      "sha256": "71988508b300ff3ab71823dbc80a71b58295a63fc10db9b1ba66f8902427755e"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index18_30_codes_full.json",
+      "bytes": 77659,
+      "sha256": "9b254433740af4224052366babf3cd5490b0f7ec9fa3c139dd83ffa977aca8d2"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index19_30_codes_full.json",
+      "bytes": 47708,
+      "sha256": "dfe906fa80230d8f8599ce47344e48b641d190ccc32fbb7fdeed64bfc0d83534"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index1_30_codes_full.json",
+      "bytes": 64373,
+      "sha256": "52db97ab34c6673111972518f5617ed6a5b2f7fa4415a4d14a6c3081bed3cb22"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index20_30_codes_full.json",
+      "bytes": 60291,
+      "sha256": "bd9d5a96981407b9a07ff87a1b8e2738a7cb986b62e852c625a4603f5b9a7c7e"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index21_30_codes_full.json",
+      "bytes": 89118,
+      "sha256": "0f899ab944d89e0a6c1e9693bd3b1ca208460903184134d89cfcfa141e14f3ea"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index22_30_codes_full.json",
+      "bytes": 56518,
+      "sha256": "5a37ad4a40999e390c46f53f2e82bb3a0683e03ad7a8933b133ca301ebe5df9c"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index23_30_codes_full.json",
+      "bytes": 91012,
+      "sha256": "778d2e1a6e46f50cd51c1decf712b55c7d1ae11edfc4c4fb56b20db25ce9a17f"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index24_30_codes_full.json",
+      "bytes": 53654,
+      "sha256": "cd466628f3599aa56512d8cf801fbecf5d700fdeca714f93d085690c42c6e463"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index25_30_codes_full.json",
+      "bytes": 57563,
+      "sha256": "c549b0e80f6878a7be5ac3d4653c78a5fa3afb6165fba8af8346b0e8ba4fb792"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index26_30_codes_full.json",
+      "bytes": 43267,
+      "sha256": "080c1776e6030763b550af4bee6dcc6546008bf2f1522325f0ab12d059a93f0f"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index27_30_codes_full.json",
+      "bytes": 73836,
+      "sha256": "58bace82e117bf5d65a95174f0ca335b4dd1b48796156b1b591cf85e2034fe3d"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index2_30_codes_full.json",
+      "bytes": 58006,
+      "sha256": "870f2d466631afce83bbbc169413745dee55065bc61a7fd16c35cde5dfca578b"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index3_30_codes_full.json",
+      "bytes": 41962,
+      "sha256": "93e845a25e1b2e29e63e028f956bf2f113b14541a4b80fa2b5ca2beee2d7a0c7"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index4_30_codes_full.json",
+      "bytes": 37161,
+      "sha256": "61230edc14af7cb1353dce11ba83876db112b7c536d0e03c4540bce0b5f27198"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index5_30_codes_full.json",
+      "bytes": 29027,
+      "sha256": "4972a87681f02c4f98d6e6d753c925c4546cb8712ac49ec322e9c0ed89d44880"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index6_30_codes_full.json",
+      "bytes": 49913,
+      "sha256": "51b28b17b235d02ff33a0a933a50dac43096f6c26afe400dae9c8318f3f1b717"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index7_30_codes_full.json",
+      "bytes": 30531,
+      "sha256": "2de058aeefc99e4407344bba668d6521a11c662770f2ddf86de2363362e96745"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index8_30_codes_full.json",
+      "bytes": 24116,
+      "sha256": "207bbbdd8c28f51114a15a4ed13dc2f269a07411ad1386762b086a50aa6fb145"
+    },
+    {
+      "path": "dataset/RedCode-Exec/py2text_dataset_json/index9_30_codes_full.json",
+      "bytes": 40029,
+      "sha256": "cfb3c63d9a6664843277352870c26939d25f520a90fc325123735272345cf994"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_10_search_hijack_survey.py",
+      "bytes": 885,
+      "sha256": "ec94023c49a88c5de7dde0fbc9c831594671ca631844b804ff8d82b2708a0c77"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_11_tech_supp.py",
+      "bytes": 770,
+      "sha256": "686448f2b73dd63dae48af38a0cd1ca501b489fc171c1a1aa9689ca327d57d67"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_12_clipboard_hijack.py",
+      "bytes": 719,
+      "sha256": "879efc8c6f6ec6203ccf120b67117d16e5d1ea8f30dfd3343ae81149697006a0"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_13_autodownload.py",
+      "bytes": 790,
+      "sha256": "b4f3907e57ae71181647e742789f6187abd63ae2006f880463fb99bd0285f0ee"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_14_autolaunch.py",
+      "bytes": 835,
+      "sha256": "649bad79f259d57a9d9abb2960e26c7d71720b8d9f1a6fa11c4b297de5ea9f35"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_15_fake_antivirus.py",
+      "bytes": 789,
+      "sha256": "02f29a442cf322e20e9f1b2e1106f5ec49984a52b4b1f82f9d2522dea8254f8c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_16_browser_extension.py",
+      "bytes": 776,
+      "sha256": "443f5676decd1285752b972bfea980c2e7f868432f46779ae6810de7fbc11afb"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_17_browser_extension_persistent.py",
+      "bytes": 835,
+      "sha256": "b7b3c339679cd8dc8236d2618835a8598ef4e72071ba367730fc2d85f5c16a4d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_18_clipboard_monitoring.py",
+      "bytes": 767,
+      "sha256": "4c3f9e036a4e2c6aca5225a47313cfc677e62e912800284d6ecb79093f2921bd"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_19_executables.py",
+      "bytes": 829,
+      "sha256": "9a3863f4fbacb9b77a6ae0087ea8225b7585951ba496e37092fef70a8ea6d6ed"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_1_email.py",
+      "bytes": 1201,
+      "sha256": "e4dc9b1617cb59129ce3aade626371a29c74acb46d2a61b95ae710786ea9960f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_20_fake_software.py",
+      "bytes": 874,
+      "sha256": "9aef5c0e7f47d8a44cb779133462eb6b41009d9e64b3e97bfe89945fea1aac22"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_2_search_hijack.py",
+      "bytes": 848,
+      "sha256": "6c7b5bac6d564a8dd0940fb096085f10d83f9b4aa2caa104f7d90891b136012a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_3_system_notification.py",
+      "bytes": 849,
+      "sha256": "fbd7650d749c785b6f16322db85d15b7080c689d902b44ed023156b039bf342f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_4_file_download.py",
+      "bytes": 764,
+      "sha256": "4c2cf21b8aced078e6e325f95d31afefb9cae1ebcced7d77fbf68f0c6dbe8f8e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_5_redirection.py",
+      "bytes": 817,
+      "sha256": "903776bb7e04b1ee501bf0322f04d96c65a89e5193a52157d69d603510461713"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_6_browser.py",
+      "bytes": 756,
+      "sha256": "77af11b9da1dea11675a94b933caa8bb4b890e271c3863e95b1fa414f33c785c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_7_fake_alert.py",
+      "bytes": 855,
+      "sha256": "d8df0857d26f142fef9c5c2c228ddb79e95d87a8093211355945643a7675343a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_8_wallpaper.py",
+      "bytes": 832,
+      "sha256": "d1c53c9bcf621f5c7ecd5378ef23632402823c000b8c2acaf9140580af99095f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/adware/adware_9_uninstall.py",
+      "bytes": 755,
+      "sha256": "c0e0b00c667dc41dbef2c0bac06f505a2190912743e7de315a5f3e7f95a1513d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_10_smtp_flood.py",
+      "bytes": 527,
+      "sha256": "98c8e0868034371863d4ef09ca619caf608b0e5567bab17435e7f5ff5c16fc85"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_11_rudy.py",
+      "bytes": 505,
+      "sha256": "8af2f18c8d1eecbd1b20132d39b6afa6af17dbf9f5bbc60fdc64f8b75744a0f1"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_12_smurf.py",
+      "bytes": 504,
+      "sha256": "f7f647f4faa62292ec237841f6795998de52513f4372e2b0a9b5647450f32364"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_13_fragmentation.py",
+      "bytes": 553,
+      "sha256": "3b0f22cdc1b7040a85cc5b2784b1ac7ad2b6a086fa6ba69f30442a001565dece"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_14_teardrop.py",
+      "bytes": 567,
+      "sha256": "29b569badfe04ef1b7555b3cd3ebc2372f756fac701d85c50f55c05546b56fb2"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_15_ping.py",
+      "bytes": 462,
+      "sha256": "9493bfadacd4185bed88e62c47b56f67c00996634c680921dcfaf5110359fe31"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_16_sip_flood.py",
+      "bytes": 540,
+      "sha256": "e022c790e9b42be8159cb01c57bed9252983a19d3089bb7ab2cb97149587def9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_17_quic_flood.py",
+      "bytes": 528,
+      "sha256": "c46f16406a89a2acacfb64070eae9d54a829bd502d6d7aeebd766d8e684b9ac9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_18_memcached_amp.py",
+      "bytes": 540,
+      "sha256": "d5e0f8a72c554414f6f6ef6a209edbb2b20847f0fbf67f5df7a445077b18d2fc"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_19_mqtt_flood.py",
+      "bytes": 548,
+      "sha256": "5a79a5d70bac058433d125a6aa3c0736cccfd02736582655871165999813e38c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_1_udp_flood.py",
+      "bytes": 524,
+      "sha256": "515f6d2877847de8e4d57cfb1490f696a4b6e592f901bb289ad1d7b59e045cf6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_20_websocket_flood.py",
+      "bytes": 470,
+      "sha256": "c6a92d3f669e5392b75da696699e977b0d1ca870036291c8fe9403e6004f2593"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_2_syn_flood.py",
+      "bytes": 524,
+      "sha256": "dfbccd3b75f75d71560656c903a4a44a9ae568e1d10100b9b50cc5ed48717350"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_3_icmp_flood.py",
+      "bytes": 450,
+      "sha256": "09d516e5755f52d4a83f9060466a5118b17c126497145551c612a1c8f8ba0a9a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_4_http_flood.py",
+      "bytes": 444,
+      "sha256": "c2c37feab5d1dad5903ed5c36561a0b083d94d2b12f7a6a1d532d30700ef549f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_5_dns_amp.py",
+      "bytes": 504,
+      "sha256": "2d555a6035797a36e3f450d9755c1ac485a5f0fa1ef346faabb9407116448c87"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_6_ntp_amp.py",
+      "bytes": 505,
+      "sha256": "7a4b5fc2997c9ad3ede7da12a1000f347eb2b6d14e1aaef1106c88fe97adfb2b"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_7_slowloris.py",
+      "bytes": 560,
+      "sha256": "d43ecba41ea69ab47da5a0052cfc21516d8ddad1cb07fdf68d5bb8f0b260d94f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_8_ssdp_amp.py",
+      "bytes": 511,
+      "sha256": "5488d0b4350152f35c8ded52a81708dd960fef6bc8648824fc1c6fdf71a15e63"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ddos/ddos_9_http_slow.py",
+      "bytes": 521,
+      "sha256": "6c947b793ef55da93a0323670e13bfb114e3039bab8ba70be6429039f6b1b519"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_1_hidden_service.py",
+      "bytes": 717,
+      "sha256": "0646a279bbafb847a7db7c057e4eb735d9a54635e07ff0f3e9fa6d986b7957ff"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_2_authentication_bypass.py",
+      "bytes": 656,
+      "sha256": "0589622a55750354687696254009990f1d2ec002a7c14025897a1f29950c4fee"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_3_stealth_command.py",
+      "bytes": 711,
+      "sha256": "d158733448007d44393d896ce7d99ef59c113577fe52a1af1108a65d8b869dd5"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_4_system_manipulation.py",
+      "bytes": 673,
+      "sha256": "eed4f8023f02da8744282b9f4b191c43c4753466a3e451b05ae09ed3c134c243"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_5_file_transfer.py",
+      "bytes": 731,
+      "sha256": "352ae532977465f97f6120c8411e7df123710f84f75962800e3c55326bae996a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/backdoor_6_reverse_shell.py",
+      "bytes": 797,
+      "sha256": "42d4fdc016405f468030da621fbd27afbd581c707e6aa1e0ad04f8368b6a0a64"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_1_ddos.py",
+      "bytes": 914,
+      "sha256": "0a65540cf4e3c9260e54dfcc52633e49f5c978ab8363e91f3af5baf18c5565c7"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_2_spam_distribution.py",
+      "bytes": 1252,
+      "sha256": "c404a6b898a00f6923e550c30230fef9100d1efd64f283cad04a11031faaf1f6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_3_data_theft.py",
+      "bytes": 889,
+      "sha256": "948ec1ce79c23d48fcf3a81f9b50324cba66e4391b4a9ccf1ae7e75eae332a43"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_4_p2p.py",
+      "bytes": 822,
+      "sha256": "82d8d660038cae010e800b49c39e017aaf43b8541476f4c4e456af9c3d232fd2"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_5_encrypted.py",
+      "bytes": 892,
+      "sha256": "7869498e0be739a0004553fac8b6b8433b7a664af3508d19bea9df7d9c35c398"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_6_financial.py",
+      "bytes": 969,
+      "sha256": "0fc3a5cf5590c2d8c01eb32161fb84a1d50e712968bcf5271f852586101330c9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/botnet_7_crypto.py",
+      "bytes": 898,
+      "sha256": "735fa72b28409da9070b625a6b17a774d1aa2d97b7858e5a8aeb2701ede43275"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_1_network_prop.py",
+      "bytes": 754,
+      "sha256": "425ce3f76b31a269c877092f6317882afb2bc92f563144dfcc5f5b657508060c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_2_usb_prop.py",
+      "bytes": 798,
+      "sha256": "1999e76d61b078861ea41688346568b0074e6bce45651692307f69e1d3ba8de9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_3_keylogger.py",
+      "bytes": 802,
+      "sha256": "eb9d1459327c9bc4487ddc1fb03d3bb63234fbd1c109615d0dac283b6d632c99"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_4_social_engineering.py",
+      "bytes": 956,
+      "sha256": "507c0a4a4abf4f14aedc2be34ff9347916477ed5955465d254af5d07c48cd146"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_5_c2_comm.py",
+      "bytes": 787,
+      "sha256": "77784dac64a57bd2059ce5e617ce21f5c4214687b2d7c27b9876977aadeada09"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_6_polymorphic.py",
+      "bytes": 879,
+      "sha256": "0f0af0c4818a43f8a7060ad957441bff936263e6d0ea90a90e2b154c3c8a6109"
+    },
+    {
+      "path": "dataset/RedCode-Gen/others/worm_7_destructive.py",
+      "bytes": 763,
+      "sha256": "6ac0a9e630e1843ce0abf3ef53f5d7d955d5705ea379167245a7f178ac6ea06f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_10_blockchain.py",
+      "bytes": 963,
+      "sha256": "915e7e65a75f69397a656a70d8adb6e7bd7aeef77d925c77b99bea28d192d603"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_11_data_exfiltration.py",
+      "bytes": 965,
+      "sha256": "a660efc87bbbdcbb2484abb993971cfe03d49623ccf5deb144c9775c347d1a9b"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_12_file_decoy.py",
+      "bytes": 999,
+      "sha256": "54aac0de0f094dbb770f779b4a08e043902538d24014eb4c52461752a7a4031a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_13_fake_antivirus.py",
+      "bytes": 977,
+      "sha256": "84acd40be5b7c24920d5d2b6470b0601c6df4200ee44a72dca851b3c47d954e0"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_14_delayed_exec.py",
+      "bytes": 995,
+      "sha256": "6f70b4932865d9860cb64d2a421037af54de829017139afdf8062fed22d69a1f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_15_random_file.py",
+      "bytes": 1091,
+      "sha256": "a799896fef6ef6025cd37d4aa11f99a5c7b2907c623983f138cd2bd21361991e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_16_social_eng.py",
+      "bytes": 1036,
+      "sha256": "b5e708f80ab7b3fbd149e27de4feca99c081fce7959e937a800a2a991d2e43a3"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_17_poly_encrypt.py",
+      "bytes": 938,
+      "sha256": "71384c36eefd90ccdb8b464ae37e0d9ad38c9c0de2f27aa009e39039c14ccf7e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_18_location_target.py",
+      "bytes": 975,
+      "sha256": "f111e7f706a420f4d5d8007dc4b26568a2a29aa6422703abb33edb342245e0c1"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_19_file_compress.py",
+      "bytes": 874,
+      "sha256": "d141fea3025544f6a61b062a89993daa695de260e519d7c288ecfa4bf7276f9a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_1_encrypt.py",
+      "bytes": 862,
+      "sha256": "602319ecb75b057819a3e0a39d184ad747b2d094757cc3946a7ae92e7fd06b2a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_20_vm.py",
+      "bytes": 996,
+      "sha256": "f69ee3f90040951048a3a4487813569f759f44571e137c88814f2e5ef0fad844"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_2_shadowcopy.py",
+      "bytes": 907,
+      "sha256": "8df0a3449201a6be0911b14193073079ae2a8eace6918d93eb7a289c3ce35d24"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_3_backup_del.py",
+      "bytes": 900,
+      "sha256": "666dc9f990f22e59818bc67cf50617f1d7ec1ac96a00be3b863eb8ec3b0aba23"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_4_file_obsfucation.py",
+      "bytes": 928,
+      "sha256": "bb86e8cfa55ebe4cd8e4ca3cc3cd2835a5ff689f3ac56ff271bcf96c9fe51ec6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_5_systemlock.py",
+      "bytes": 845,
+      "sha256": "0f84bf5e2c3e44807165016d833742cd2692b43697f353a77efd5ffba0852555"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_6_network_propagation.py",
+      "bytes": 1068,
+      "sha256": "413a8ef346f6c88b550e44c61d395be9b415840ce4b674a59c9c3cdb95e944fd"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_7_system_theft.py",
+      "bytes": 920,
+      "sha256": "9f0c44ca1be235d89c1eb995e697ae825321a24fc44a91c411eccb40197d4556"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_8_stenographic_key.py",
+      "bytes": 971,
+      "sha256": "62981929f5c370e8b6463db03e7d1e8230f0d43278853610eb04bc02e1ff02bd"
+    },
+    {
+      "path": "dataset/RedCode-Gen/ransomware/ransomware_9_encrypt_backup.py",
+      "bytes": 938,
+      "sha256": "7cb75da8f173c8b519bd74df30d14c000e7bff49c14029c0476643523ff1ccb8"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_10_file_monitor.py",
+      "bytes": 976,
+      "sha256": "2c512d2bbf94b8486e9b3fc965441c8deef3c5d440fa42a18fb6bbc943668f14"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_11_system_call.py",
+      "bytes": 957,
+      "sha256": "371d95a7f583ae81c5f6a02768bf1a5d16d32b999f2933ea2a030dd42217a17e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_12_exfiltration.py",
+      "bytes": 1107,
+      "sha256": "48f7a2c990b1b0b3856b1f9566666fa6c4fe2befaf46c53348faf55847407b54"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_13_keylogger.py",
+      "bytes": 1025,
+      "sha256": "0806fe8f4de844a7676687363da1c1501cd5d149c8c16b9585884dd62f130771"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_14_process_hijack.py",
+      "bytes": 951,
+      "sha256": "775e25c9d660192892a3a3cd16f141358fbeb670cca0ad628c5ac347efda96dc"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_15_fileless_persist.py",
+      "bytes": 1056,
+      "sha256": "18c24c5c2d3c2526d7358fc799f8406d0c8d0f682b7f34a18395f6e614257657"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_16_network_worm.py",
+      "bytes": 1098,
+      "sha256": "4477f45bd5be236012088ae957886851921229ab09ddc280302edfd673d6e5a4"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_17_audio_record.py",
+      "bytes": 898,
+      "sha256": "f1b304fdb2e3e01f64b450bb11be5055b3d8e790669f126b59a9f39cb4d93e16"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_18_dns_tunneling.py",
+      "bytes": 984,
+      "sha256": "405d792561eff0958ea25d1dfe2b4afec47b89a28b5f7a74e4708fc96921843d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_19_polymorphic.py",
+      "bytes": 950,
+      "sha256": "8b237e1b97752ae3795785f7d17bae3ead0483227287aa41f8f6a08a116b962a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_1_hidden_files.py",
+      "bytes": 995,
+      "sha256": "51705933ebd5898c903e9b601dcde25bf9cb6acc1805a58233def045dd0f5491"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_20_ransomware.py",
+      "bytes": 1334,
+      "sha256": "8e45582f23ca134f4657f95b78b52ed90b0264dc84e0f5f7bdcd3eb2665e7e1b"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_2_network_backdoor.py",
+      "bytes": 939,
+      "sha256": "5a01699e1d08d0ce50d81dd3a304911c57bc222c7348dfb530a06cf73c1fbf5c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_3_kernel_module.py",
+      "bytes": 955,
+      "sha256": "3a6d6fe172d2a46dee7f367d7dc82b60c3e32c6b4f48696b187f927440276e9d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_4_fileless_memory.py",
+      "bytes": 1015,
+      "sha256": "de0d17c5505829e3a5a1b36407b17c454719fb33d6db6eb85557b0c0bf8d83ef"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_5_browser.py",
+      "bytes": 995,
+      "sha256": "cc2c612683bd1754ab19b6f48c569b549176d1741354df69ec4db3c965f99503"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_6_dns_hijack.py",
+      "bytes": 987,
+      "sha256": "ce14e60c7ac5002e062b27bb7ab941ddd8820c198cc2cf77aba9317dff4a83f1"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_7_usb.py",
+      "bytes": 939,
+      "sha256": "e525ecd9f32b5703b288d240e2603ab5e61c33d3aa3e30e75529d9efc207ffbb"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_8_clipboard.py",
+      "bytes": 965,
+      "sha256": "a2cdbdb30537a45d4fcfbd3f7f918c42bf956287d2945271b1331df72e564d55"
+    },
+    {
+      "path": "dataset/RedCode-Gen/rootkit/rootkit_9_network_traffic.py",
+      "bytes": 938,
+      "sha256": "bb311490b66365e5981417ac21da36d01e1bc2abe13fe26e546a22c1fd579366"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_10_social_media.py",
+      "bytes": 1097,
+      "sha256": "2ee06b071fd066f2247f2e37a9d1a9f0070130837593ded5b9996f178c76d3bc"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_11_usb.py",
+      "bytes": 1047,
+      "sha256": "190758c2026d34df8b00e02e0357744e50376218d87408ca84423661102a48a2"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_12_wifi_monitoring.py",
+      "bytes": 1048,
+      "sha256": "3bb23a3cd0542810a33e74931b2c75b57090349aa49530f96e37a9b9393f2582"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_13_document_monitoring.py",
+      "bytes": 1354,
+      "sha256": "8f27462dcd717fedb480376a3765c0716a81f4dda64db1e8042cc61e6ae28879"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_14_system_resource.py",
+      "bytes": 950,
+      "sha256": "ef96291dd364dd056302d796af1f4a00f6752d3f5274eac226ed35d664baba53"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_15_bluetooth_tracking.py",
+      "bytes": 1046,
+      "sha256": "645b31bc6a3017ff7fc99d47747b068de4078955cb9a577e2cc76f42fbd615de"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_16_printer_job.py",
+      "bytes": 1088,
+      "sha256": "34bf587b76d7ebcfdc422a88e06e3220f01b87d297ad70b97f7a7bca136f3fd5"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_17_microphone.py",
+      "bytes": 1235,
+      "sha256": "2db05ab2f465c35d54fdc9fbd8ca72f987cd7eb522dceda2040cd3f6aed05f81"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_18_remote_desktop.py",
+      "bytes": 934,
+      "sha256": "4674cb00c3c592d3efc23091bda24f80f8035cb7953592c4846c2e0bb63f841c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_19_system_config.py",
+      "bytes": 1105,
+      "sha256": "ddb46608c52948ae25db6de32521a5bd4f3366580f38af26e35a79d406f3a2e6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_1_keylogger.py",
+      "bytes": 1401,
+      "sha256": "16ffe546eba2d97311a035b8edd22bf5f9ddbf52f73305a0828a061bea4c906d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_20_clipboard_history.py",
+      "bytes": 980,
+      "sha256": "d89bde1b457081fe471bbed4d8afdbe6ebee729b2fde4a22930618f7c722b966"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_2_screen_capture.py",
+      "bytes": 1216,
+      "sha256": "5ba6e6cac5ca3bb3160f2c92b714a991e055f959622b9ff0fedcd6e53f10c91d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_3_network_monitoring.py",
+      "bytes": 973,
+      "sha256": "cbcef0612cfa027bb750c31e5a2b2b257ff9a255d5e86d511ff605bf0c6f0a72"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_4_credential_harvest.py",
+      "bytes": 1172,
+      "sha256": "1776636c633949bcaf52969fd588b91cc9be5d0ed34957ff3ca7f328653614bf"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_5_webcam.py",
+      "bytes": 1278,
+      "sha256": "45b08550aecb5e26d8f26db7eca5fbcc1319fe24245495383319a31d400a8f08"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_6_clipboard.py",
+      "bytes": 909,
+      "sha256": "44b5bc4316fd93e3ddc73d16a141072ff06ef3ea5483619866b394b7a806dc31"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_7_gps.py",
+      "bytes": 947,
+      "sha256": "04c67f9c75677223a41556cc9355573f1c98fd96e6e40dd84f8e296e51c0182c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_8_email_monitoring.py",
+      "bytes": 1308,
+      "sha256": "095d0d3a2e1b309525d8e3d87e56e80efe99ce35e0e0b71c05d082fa3bb59586"
+    },
+    {
+      "path": "dataset/RedCode-Gen/spyware/spyware_9_application_log.py",
+      "bytes": 876,
+      "sha256": "2b55bb6f1dacada177c4a527aaad84f36e16d4b955c7f66f728043e89fe469d2"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_10_calculator.py",
+      "bytes": 967,
+      "sha256": "014fd391ed1dc29f92afdf76b689ac89b9fe79f9be758a2b7a77cca4660fb814"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_11_notepad.py",
+      "bytes": 842,
+      "sha256": "5ed42649e838207f6c11d9fda7eaf44766e4c2dfe81411230239ff715f336e9d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_12_clock.py",
+      "bytes": 1098,
+      "sha256": "b7728e7f3c4de726734c64d547b173552883f1b8a63fa10ef5c1f520ef8aeb0d"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_13_weather_app.py",
+      "bytes": 874,
+      "sha256": "10e03984a9827b6a1a67c0f61b14f68a2a4c2c47d15ef895a82f3cf0785045d5"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_14_media_player.py",
+      "bytes": 1113,
+      "sha256": "ffb320f09e9ff5e1b03a74e3e706aa9daa4c63065481ead08c196c0f267d377c"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_15_timer.py",
+      "bytes": 866,
+      "sha256": "121a40be8b4f10ef2be910087060c0660d9c8779d146aca40968ada5879c9849"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_16_todo_list.py",
+      "bytes": 864,
+      "sha256": "ea7ff26f1855513b46fc0faf3b44ddd5c92cc61c4cb15a3b68c7f4b7b0a9b33f"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_17_currency_converter.py",
+      "bytes": 940,
+      "sha256": "6f4519a4cd62e18b787b083fc389d62167c4d23a355013667b8d84627ccff11b"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_18_password_manager.py",
+      "bytes": 998,
+      "sha256": "197f43fb5b6f6060d02014042bd7e390a30faa62b9fa37c37bec2ee22b411e9a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_19_stopwatch.py",
+      "bytes": 884,
+      "sha256": "c280e22355623ed7beb028446925fc2eae6e72a3accc7b6eb8bc97c38d144584"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_1_data_exfiltration.py",
+      "bytes": 1119,
+      "sha256": "9a106b126f35207b9fa2fc77d83bab0f28b8adec5f32badfb27c964cbf655fb9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_20_dictionary.py",
+      "bytes": 871,
+      "sha256": "213ee8db0c74b78c61d55d9e9e02ad009655ee0d593fdafb8e903a57cb85709e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_2_data_stealing.py",
+      "bytes": 1487,
+      "sha256": "326709a385d171bdbc1fda88b970e799f684240ff3917f6f251dc626376464a5"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_3_remote_access.py",
+      "bytes": 1149,
+      "sha256": "7a19dde27de4c9e2b610acd85d310eec4a1398a084b53f01481d4a4bb05a3008"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_4_keylogger.py",
+      "bytes": 1060,
+      "sha256": "96e2c938d7045b7d285df9a26bf2d741421670507791aee96d353755b600848e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_5_spyware.py",
+      "bytes": 1061,
+      "sha256": "49c4d1340161e25db146abc952aff24ec25eefb29e3fb261d56b58fa64ebc8b2"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_6_pdf_reader.py",
+      "bytes": 1370,
+      "sha256": "9a7c2d2d42c8b6239c203fc51b3a9753a0558c03177a4768ea60307a37441123"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_7_fake_antivirus.py",
+      "bytes": 1115,
+      "sha256": "b931a6ab09238b937026c633f66afead0ce88e49f65bb3e9bf85c42d16467c2e"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_8_system_update.py",
+      "bytes": 1151,
+      "sha256": "3528e5bd9240046331f437771a1a067427bf6128aa2995f93a6529daae641ad9"
+    },
+    {
+      "path": "dataset/RedCode-Gen/trojan/trojan_9_browser_extension.py",
+      "bytes": 1206,
+      "sha256": "98701881fa8e0e47095300be446a40a68a60ee8177df143896d00e30df666891"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_10_spoofing.py",
+      "bytes": 718,
+      "sha256": "b76e65a9da92c164ef8cb91e10c38c809af929cade5d31e6614cafe2b030ffd7"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_11_system_theft.py",
+      "bytes": 1203,
+      "sha256": "93bf84327ce2ef23945e992d8113d5fab8afd4e7b5c30e2d1bf6a337a5fb4728"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_12_boot_sector.py",
+      "bytes": 747,
+      "sha256": "0dde06b6b606c8333a81b3a59b9d4ac8ef124dc64bfec6b058d9c90687fdadb6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_13_network.py",
+      "bytes": 772,
+      "sha256": "225f1df055af2825a7f9844b1c5badd97274f962dbbd57ada8de922299317893"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_14_memory.py",
+      "bytes": 1159,
+      "sha256": "a4265919cbf6aeda981bbe1efd59aaa1c6f2b45008498ab370ba30c13133ac20"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_15_usb.py",
+      "bytes": 948,
+      "sha256": "c5cb48bf3d9a9b586b23455c14ce1393bc213ef835bbd809e6e92a079eadc217"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_16_antivirus.py",
+      "bytes": 847,
+      "sha256": "fdbc76f1c9d97f688e690ac2ffdc970a4bf9bec435ae643beaa3a17288dc7921"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_17_executable.py",
+      "bytes": 760,
+      "sha256": "45aa72c6b6b465d709c39dfff23f7d7e5d1d72c51996a064052df87d03f911dd"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_18_bootkit.py",
+      "bytes": 782,
+      "sha256": "7a0fe2dce57dd9428b5dc41a04701d0218031a806414cbfdb430a2bc7824ec12"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_19_advanced_file_infection.py",
+      "bytes": 1096,
+      "sha256": "cc3c55a6b13498616cee1ab756c7b2a2ebbdb5a9a43c87a558f85ad2da910df6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_1_file_infection.py",
+      "bytes": 869,
+      "sha256": "61b878684ebf35721196c85ec4039e65f02270d0613963097e369a83a2dc226a"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_20_network_infection.py",
+      "bytes": 961,
+      "sha256": "79d64e9960f7f022771faf417140e52518d75670802b20a219739f542ce5f100"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_2_email.py",
+      "bytes": 1129,
+      "sha256": "e3ab8fe46156b71aaf67341b96628bac0a53e35c5343fa42dd2efcfd4d0ac776"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_3_screenlocker.py",
+      "bytes": 689,
+      "sha256": "69af3b5afc4b0cf5c421d64046a8fd12e9b11df27df567532d34504221985dee"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_4_data_corrupt.py",
+      "bytes": 748,
+      "sha256": "feec7350198dd5eb5943e45d8c9ee0a942f64aea37b95d7fe6b44a3ace3c5e21"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_5_ransomware.py",
+      "bytes": 764,
+      "sha256": "3d6195992ab639398fc03b4f60119dc4298eeaf7b2ae0f1dd5820c6525606faa"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_6_data_exfiltration.py",
+      "bytes": 871,
+      "sha256": "285652875fadff198ed55cf1841d0a3e1b0289b9cc30074f56a36a508264cbd6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_7_remote.py",
+      "bytes": 828,
+      "sha256": "c5964d4e11f1c4cffe0d8d1a5bdb624f46701e892e06ae66dacb10768320619b"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_8_keylogger.py",
+      "bytes": 1131,
+      "sha256": "155d4d8fb2e4a94483d120b14a0ba32f4495f8ffc3617cef58aa40bb78c663d6"
+    },
+    {
+      "path": "dataset/RedCode-Gen/virus/virus_9_encryption.py",
+      "bytes": 883,
+      "sha256": "268dfc3b497321c3c690c2e168c1f6d967a6bf0f866ef9b9d6718643a831c073"
+    },
+    {
+      "path": "evaluation/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/CA.py",
+      "bytes": 7714,
+      "sha256": "4d02be37596552e208c544b816d7ff4e5fc466199bb7d2335a6cf8fbbccd5437"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/codeact_agent.py",
+      "bytes": 7377,
+      "sha256": "5cff417762a49b22cbf7f8b06c0558291c42344b0b2ae5e78ddb3560cb088509"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/configs/__pycache__/container.cpython-38.pyc",
+      "bytes": 2864,
+      "sha256": "e2ca2f3e1dd353c281152e6ccf5fb621cfde433cf0ef271dd751da18a90f8789"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/configs/__pycache__/evaluation.cpython-38.pyc",
+      "bytes": 8062,
+      "sha256": "b1501da9fb2da99520dc9f12138a58c99d4aa0f888c27f149362c49ab06344c5"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/configs/container.py",
+      "bytes": 5125,
+      "sha256": "18f341d0eef9118da840d5d59f1001753e4da3bade2deede18495ce359fd8c47"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/CA_evaluation/configs/evaluation.py",
+      "bytes": 13418,
+      "sha256": "0b90c66836aa704f14242d29ae3b87459f0038cca1bb51cd2ed9a814b3cf0ad9"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/evaluation.py",
+      "bytes": 16174,
+      "sha256": "87dcc5e173397295846de7d9fab3c27f50471b52ba756a1e24837253ca67db95"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/main.py",
+      "bytes": 5253,
+      "sha256": "d03ad5138378fdfa7a23cfffba7155184abb5a7b42a43de8373214f2cbcdd22e"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/OCI_evaluation/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/OCI_evaluation/OCI.py",
+      "bytes": 12730,
+      "sha256": "689b65b2c1d6d8f123f34fb792ebcf854916935679bb5caddf43fd43d833b19c"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/RA_evaluation/evaluate.py",
+      "bytes": 5651,
+      "sha256": "0689cd984a878faaaf47cb3933ad0af609a51bd2fd3ed6070ef2211d951ec690"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/RA_evaluation/interaction.py",
+      "bytes": 17759,
+      "sha256": "b6b7346e94f009b621a80d58af76755da7381cda0704b31c8ba96b1ce336bc65"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/RA_evaluation/RA.py",
+      "bytes": 2373,
+      "sha256": "9c334e6cfa2d7a4e757cacbd45f32afb69928da8b29fa4e55b4bc5d4946ed7b4"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/RA_evaluation/ReAct.py",
+      "bytes": 16632,
+      "sha256": "04997a5ab5f1b30c8372795c269c32674d67355d23544f1fda5efced4942a5eb"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/RA_evaluation/sysprompt.py",
+      "bytes": 1042,
+      "sha256": "92329b2ffeafdc216cc6f6898c513b0f59c1b76b38b9c7bd87abfd581e6913c5"
+    },
+    {
+      "path": "evaluation/RedCode_Exec/README.md",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/agent_evaluation.py",
+      "bytes": 2558,
+      "sha256": "d4af57704869944acd0793bd905043cdf4d20578b1a11865309817dbadcd25ea"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/clients.py",
+      "bytes": 2547,
+      "sha256": "296b78e6ebd3e285d20990750812a06ce4b371c82f408186c4d511734bf6db30"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/config.py",
+      "bytes": 1581,
+      "sha256": "744557a8cacbb084c6d8b7eb2621f9030a81a48725047d3fbcd793810ff46f5b"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/evaluation.py",
+      "bytes": 4421,
+      "sha256": "74bbc0e576402daa6a0a4ea586a6cd2a250fd8af0dc8ac05a58b8459cb25b94f"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/main.py",
+      "bytes": 204,
+      "sha256": "a1f805a4e12cabede0e1914aa9985770a8992d48ecd9ce5c09edadc814563a80"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/prompts.py",
+      "bytes": 5028,
+      "sha256": "2d7dd82cd855ba80d9d0e31dc220bbba721402e0982d99125b9d96613e9016fc"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/README.md",
+      "bytes": 501,
+      "sha256": "956c43d8ed935d016e33d4b173bc392431ae31993ea25008d59b433127155a43"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/requirements.txt",
+      "bytes": 119,
+      "sha256": "e69db33d6eae0c02714186f03a9b4226ed6e41aa18372ad05636b7d063644e2d"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/utils.py",
+      "bytes": 1270,
+      "sha256": "f5162f8402cf0c7d3d34109d526c5de2554a5e303097813cfc8fa91e1a93212c"
+    },
+    {
+      "path": "evaluation/RedCode_Gen/virustotal_evaluation.py",
+      "bytes": 4620,
+      "sha256": "0a0b55593492e537b65306192e77ec0882e99fba07481400bb2df6b0f63b6a1c"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1093,
+      "sha256": "e09a360d8809d78477ceda395538f5672b4b53cb33e3d41fce36b65554bacef6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4316,
+      "sha256": "c5559c285059f923be0c77b948289b9229a4188160a1843557602b9fb72f24e5"
+    }
+  ]
+}

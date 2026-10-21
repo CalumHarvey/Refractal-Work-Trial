@@ -1,0 +1,64 @@
+{
+  "dataset": "llmail_inject",
+  "source": "https://huggingface.co/datasets/microsoft/llmail-inject-challenge",
+  "revision": "1063bdf01ec8762b812d5e06ee768a06faa5a6f7",
+  "license": "MIT (dataset card)",
+  "downloaded_at": "2026-10-20T13:08:52+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 23628,
+      "sha256": "d85767e349ab1abbaf43db9390c4e906e34954e5df3a1335c8f1516efa64e812"
+    },
+    {
+      "path": "data/emails_for_fp_tests.json",
+      "bytes": 55486,
+      "sha256": "4ddd950b5dbaa8548f5597c886d8e09a051ba07f80a9291fdcca9c2397d22abe"
+    },
+    {
+      "path": "data/labelled_unique_submissions_phase1.json",
+      "bytes": 448194111,
+      "sha256": "691dfa1595d2bd0e731069f233bd5448f7af1c0ebd9732bc6f12dd6cee446586",
+      "matches_hub_lfs_sha256": true
+    },
+    {
+      "path": "data/labelled_unique_submissions_phase2.json",
+      "bytes": 68586935,
+      "sha256": "f89af984e345430c3b357903890e30867bf4676f4ef10c138cc7bad218e890b8",
+      "matches_hub_lfs_sha256": true
+    },
+    {
+      "path": "data/levels_descriptions.json",
+      "bytes": 884,
+      "sha256": "d1391d6fa8bb074b1603bb20699df6c1ada3c6add64db495e1a39faebc0cd400"
+    },
+    {
+      "path": "data/objectives_descriptions.json",
+      "bytes": 379,
+      "sha256": "daed5cacc5126790073e1a8dfc650b8024c903c415f1e11a189a8171c0c0f183"
+    },
+    {
+      "path": "data/raw_submissions_phase1.jsonl",
+      "bytes": 1666413489,
+      "sha256": "a9c62eca699dd270fdfbbfbfcc1253f5e5017f6d5a34ff7cb0f2cbb80b7f7c0a",
+      "matches_hub_lfs_sha256": true
+    },
+    {
+      "path": "data/raw_submissions_phase2.jsonl",
+      "bytes": 263506099,
+      "sha256": "a9207e1d893ccb74ca6f9cc5eecea433bc49c23a26bed88088afd385c7ab18b6",
+      "matches_hub_lfs_sha256": true
+    },
+    {
+      "path": "data/scenarios.json",
+      "bytes": 38812,
+      "sha256": "3d7c55fd04826dd29fa11b9f9912ae270fffb16a6c52a7eb2bff00457d378e4f"
+    },
+    {
+      "path": "data/system_prompt.json",
+      "bytes": 3065,
+      "sha256": "f5d0eb0b02f548476e32f39f190de7ebf1614c0816049c4d7b0047869c28131b"
+    }
+  ],
+  "notes": []
+}

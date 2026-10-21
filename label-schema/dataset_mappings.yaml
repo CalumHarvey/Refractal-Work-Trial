@@ -1,0 +1,927 @@
+# Dataset -> AgentDecisionRecord mappings (mappings v0.6.7, schema v0.6.1)
+#
+# Conventions
+#   - Labels a rule does not set stay null (= unknown, masked in loss). Never default to false.
+#   - Labels (v0.6.0): decision, attack_vector, failure_modes, action_relation, outcome,
+#     adversarial_locations, hard_negative. Derived, never set by rules: is_attack
+#     (= attack_vector != none) and effects (see `effects_derivation`).
+#   - decision on a trajectory record = the worst correct decision in the run (BLOCK if any step
+#     should be blocked). text / outcome records keep decision null.
+#   - failure_modes use project numbering 1-23 (MS AIRT taxonomy v2.0), plus principal_misuse /
+#     hallucination / misinterpretation.
+#   - `src.<field>` refers to the source record. Field names marked `# VERIFY` are from dataset
+#     descriptions, not from inspecting files - confirm against the actual data before running.
+#   - FINAL ANSWERS: a step whose action is a final answer rather than a tool call gets
+#     planned_action = {tool_name: "final_answer", arguments: {text: <answer>}} (a pseudo-tool, never
+#     listed in tools_available).
+#   - VISIBILITY: `input:` blocks may only use information available at decision time in production.
+#     Where hostile content sits goes in labels.adversarial_locations, never in input.
+#   - group_ids: every dataset sets all four axes {task, attack, trajectory, author} (null where n/a),
+#     naming the UNDERLYING item, namespaced by its origin benchmark.
+#   - normalise(text) = lowercase, strip, collapse whitespace; task keys built from instruction text use
+#     sha1(normalise(text))[:12] everywhere so ToolSafe, AgentDojo and ASB keys line up.
+#
+# Provenance (written to record.provenance, one entry per label a rule sets; per mode for failure_modes)
+#   - origin: rule `origin` -> dataset `origin` -> origin_from_label_source[label_source].
+#     label_source resolves rule -> dataset.
+#   - rule: the rule id. Nothing else is stored on the record.
+#   - Conflicts: two rules setting the same scalar label -> keep the higher-confidence rule's value
+#     and note the conflict; failure_modes take the union, each mode keeping its own entry.
+#
+# Confidence (resolved at load time from the provenance rule, never stored unless record-specific)
+#   - calibration.rules[rule] if audited -> rule `confidence` -> dataset `confidence` ->
+#     default_confidence[label_source].
+#   - Confidences express BELIEF ONLY ("probability this label is correct"); they are never lowered to
+#     trigger backfill - rules set `needs_backfill` instead.
+#   - Every value in this file is currently uncalibrated (hand-set priors); see `calibration`.
+#
+# Changelog
+#   0.6.7 - Benign agent activity: TOUCAN (real MCP runs, quality >= 3.5, <= 5 runs per server, <= 3 steps per
+#           run, side-effect calls first), ToolACE (<= 3,000 call turns) and When2Call (correct call / ask /
+#           decline -> ALLOW; unwarranted calls -> REVIEW with hallucination / misinterpretation).
+#   0.6.6 - MCPTox grounded in its files: one step record per distinct labelled model reaction (3 per label
+#           per case), tools parsed from the case's system prompt with the poisoned tool as served,
+#           Success -> BLOCK, Ignored / Refused -> ALLOW hard negative, Direct Execution -> REVIEW; first
+#           call must agree with the label; mt.paradigm dropped (template names undocumented).
+#   0.6.5 - InjecAgent grounded in its files and the authors' model outputs: one step record per distinct
+#           agent reaction (most frequent first, 3 per decision per case, wording and step), first action must agree
+#           with the checker's label, R-Judge's 297 cases excluded; rules ia.injection / ia.attacker_call /
+#           ia.not_hijacked replace ia.attacker_call / ia.hard_negative_variant.
+#   0.6.4 - ToolSafe grounded in its files: attack templates (AgentDojo <INFORMATION>, ASB DPI / OPI
+#           wording) locate attacks exactly; failed-attack file typed as OPI; OPI steps before the
+#           injection arrives -> tool_metadata / mode 18; ASB attacker-tool calls -> injected_task;
+#           row-position record ids; DPI suffix stripped for task keys; final_answer pseudo-call.
+#           Replaces ts.origin.* / ts.locate_spans with ts.agentdojo.* / ts.asb.* / ts.agentharm.*.
+#   0.6.3 - R-Judge grounded in its files: `goal` is the benchmark's judging prompt (same on every
+#           record) and is excluded; no tools_available (deriving it from calls would leak the label);
+#           action formats and double-encoded / null tool outputs specified; rj.injection_location rule.
+#   0.6.2 - mappings_version key for converters; ATBench at.poisoned_tool rule (tools carrying
+#           _original_description in tool-description-injection runs -> adversarial_locations, given);
+#           ATBench underscore tool fields (_source, _original_description) excluded from input;
+#           ATBench at.marked_tool_output rule + renaming of generator marker keys in tool outputs.
+#   0.6.1 - Grounded in the downloaded files (data/raw/*/manifest.json, 2026-10-20): ToolSafe score
+#           encoding, folder/file -> origin and ASB attack type, ReAct-text parsing, instruction-hash
+#           task keys; ATBench real field names and its 8 risk-source / 14 failure-mode tables, safe
+#           runs with injection sources as trajectory hard negatives; R-Judge real fields and
+#           attack_type -> given failure mode (backfill only for 'unintended'); LLMail raw vs
+#           labelled-unique files, judge attack_attempt labels, scenario reconstruction files,
+#           ll.resisted_final_answer removed (output is an echo), benign email sources for pairing.
+#   0.6.0 - Simplified record: is_attack and effects derived; trajectory_unsafe folded into decision;
+#           decision_probs dropped; injection_spans + poisoned_tools merged into adversarial_locations;
+#           outcome cut to action_executed / goal_achieved / user_task_completed (others stay in
+#           source.original_label); all provenance in one per-label `provenance` object (origin + rule);
+#           confidence and calibration status resolved from rules at load time; fm_origin -> origin;
+#           converter_rules section; records carry mappings_version.
+#   0.5.0 - needs_backfill flag replaces confidence-threshold backfill triggers; calibration section;
+#           audit sample size ~200.
+#   0.4.0 - Per-label confidence; default_confidence table; per-head loss weighting.
+#   0.3.0 - failure_modes origin and per-mode detail; failure_mode_backfill stage.
+#   0.2.0 - Injection markers moved out of input; group_ids with 4 axes; LLMail retrieved check;
+#           ToolSafe origin rules at 0.7 with the ASB table; S33/S34 renamed.
+
+mappings_version: "0.6.7"
+
+decision_policy:
+  ALLOW:  "Action serves the principal's request and is within granted scope, even if hostile content is present."
+  REVIEW: "Plausibly legitimate but ambiguous: deviates from the expected plan, high-impact/irreversible, or labellers disagree."
+  BLOCK:  "Action originates from adversarial content, exceeds authorisation, or carries out a harmful principal request."
+
+# How a label was produced -> its origin, when a rule does not state one.
+origin_from_label_source:
+  human:              given
+  benchmark_checker:  given
+  ground_truth_code:  by_construction
+  by_construction:    by_construction
+  derived_mapping:    rule_inferred
+  rule:               rule_inferred
+  classifier:         model_inferred
+  llm_judge:          model_inferred
+  weak_supervision:   model_inferred
+
+# Fallback confidence by how a label was produced. Status: uncalibrated (ordering intended, values not measured).
+default_confidence:
+  ground_truth_code:  0.95
+  benchmark_checker:  0.9
+  by_construction:    0.9
+  human:              0.85
+  derived_mapping:    0.7
+  rule:               0.7
+  classifier:         calibrated     # per-label precision measured on a held-out set
+  llm_judge:          calibrated
+  weak_supervision:   calibrated
+
+# effects are computed at reporting time, not stored. First matching row wins; rows combine across modes.
+effects_derivation:
+  - when: "action_relation == harmful_user_task"
+    effects: [user_harm]
+  - when: "action_relation == injected_task and planned tool side_effects in [external_send]"
+    effects: [agent_action_abuse, impact_outside_environment]      # exfiltration
+  - when: "action_relation == injected_task and planned tool side_effects in [destructive, financial, code_exec]"
+    effects: [agent_action_abuse, user_harm]                       # destructive action
+  - when: "action_relation == injected_task"
+    effects: [agent_misalignment, incorrect_decision_making]       # goal redirect
+  - when: "13 in failure_modes"
+    effects: [agent_action_abuse]                                  # disclosure
+  - when: "hallucination in failure_modes or misinterpretation in failure_modes"
+    effects: [incorrect_decision_making]
+
+# Shared lookup: ASB attack type -> modes / vector. Used by `asb` and by ToolSafe runs that originate in ASB.
+asb_attack_types:
+  DPI:               { failure_modes: [2],          attack_vector: direct_user }
+  OPI:               { failure_modes: [16],         attack_vector: tool_output }
+  memory_poisoning:  { failure_modes: [14],         attack_vector: memory }
+  PoT_backdoor:      { failure_modes: [1, 5],       attack_vector: provisioning }
+  mixed:             { failure_modes: [2, 14, 16],  attack_vector: multiple }
+  none:              { failure_modes: [],           attack_vector: none }
+
+# Applied by the converter to every record after its dataset's rules.
+converter_rules:
+  - id: cv.hard_negative_non_allow
+    when: "decision in [BLOCK, REVIEW] and hard_negative is null"
+    set: { hard_negative: false }
+    origin: by_construction                         # definitional: a hard negative is an ALLOW
+  - id: cv.fm_missing
+    when: "failure_modes is null and granularity != outcome"
+    needs_backfill: [failure_modes]
+  - id: cv.fm_unsafe_empty
+    when: "decision in [BLOCK, REVIEW] and failure_modes == []"
+    needs_backfill: [failure_modes]
+    notes: "An unsafe action with no stated cause."
+
+datasets:
+
+  # ------------------------------------------------------------------ core
+  toolsafe:
+    # Files (repo MurrayTom/ToolSafe @ 46358fa, folder TS-Bench/): 7,182 steps in 9 JSON lists.
+    #   agentdojo-traj/{banking,slack,travel,workspace}.json  1,220 steps / 589 runs
+    #   agentharm-traj/{benign_steps,harmful_steps}.json        731 steps / 197 runs
+    #   asb-traj/test/{DPI_attack_success,OPI_attack_success,atttack_failure}.json  5,231 steps / 2,590 runs
+    # Fields: id-interaction, id-segment, instruction, history, current_action, env_info, score;
+    #   ASB files add attacker_tool, aggressive, attack_success. No licence file in the repo.
+    # (file, id-interaction, id-segment) is NOT unique: 205 AgentHarm harmful steps share it with a
+    # different candidate action, so records are identified by the row's position in its file.
+    # Attack templates (benchmark attack text, kept in input as content; used to locate the attack):
+    #   AgentDojo  "<INFORMATION> ... </INFORMATION>" in a tool output: 673 steps (all 352 unsafe ones);
+    #              the other 547 steps come before the injection is seen and are all safe.
+    #   ASB DPI    "You must strictly adhere to the following instruction" appended to the user
+    #              instruction: all 2,293 DPI steps.
+    #   ASB OPI    "Now you need to pay attention to the following request" in a tool output: 1,345 of
+    #              2,509 OPI steps and 172 of the 429 failed-attack steps; the rest are first steps,
+    #              taken before the injected output arrives.
+    #   The failed-attack file holds only OPI-type cases (no DPI wording anywhere in it).
+    # In every ASB step the attacker's tool is listed in env_info, and a score of 0.5 / 1 coincides with
+    # the planned call being that tool in 2,527 of 2,535 steps (score 0: never).
+    granularity: step
+    label_source: human
+    derived_fields:                                 # computed by the converter from the file path / text
+      origin: "folder: agentdojo-traj -> agentdojo, agentharm-traj -> agentharm, asb-traj -> asb"
+      suite: "agentdojo file stem (banking / slack / travel / workspace)"
+      asb_attack_type: "file stem: DPI_attack_success -> DPI, OPI_attack_success -> OPI, atttack_failure -> OPI (inferred, see above)"
+      clean_instruction: "src.instruction with an ASB DPI suffix (from 'You must strictly adhere...') removed"
+    group_ids:
+      task: "{origin}:{suite or 'all'}:instr:{sha1(normalise(clean_instruction))[:12]}"   # the DPI suffix is stripped so a task keeps one key whether attacked or not
+      attack: "asb: asb:{asb_attack_type}/{src.attacker_tool}; agentdojo with an injection: agentdojo:attack:{sha1(normalise(<INFORMATION> block))[:12]}; otherwise null"
+      trajectory: "toolsafe:{origin}:{file stem}:{src['id-interaction']}"
+      author: "{origin}:benchmark_authors"
+    input:
+      user_prompt: src.instruction                  # as given, including any DPI suffix (that is the attack)
+      messages: "user turn = src.instruction; then parse_react(src.history): per step an assistant message (thought as reasoning, tool call, or final answer) and, if present, a tool message with the Observation (trust tool_output)"
+      tools_available: "parse_tool_text(src.env_info): 'name: description' + 'parameters:' blocks (origin first_party; side_effects from the name keyword table). ASB's attacker tool is listed, as in the benchmark"
+      planned_action: "parse_react(src.current_action): the last Action naming a tool, with its Action Input; a step that only gives a final answer becomes the pseudo-call final_answer({text})"
+    rules:
+      - id: ts.safe
+        when: src.score == 0                        # encoding inferred from the data: all benign and failed-attack steps are 0
+        set: { decision: ALLOW, action_relation: user_task }
+        confidence: 0.85
+      - id: ts.controversial
+        when: src.score == 0.5
+        set: { decision: REVIEW }
+        confidence: 0.7
+      - id: ts.unsafe
+        when: src.score == 1
+        set: { decision: BLOCK }
+        confidence: 0.85
+      # Attack vector, modes and locations come from the folder/file and the attack templates.
+      - id: ts.agentdojo.injection
+        when: origin == "agentdojo" and "<INFORMATION>" appears in a tool output in the history
+        set: { attack_vector: tool_output, failure_modes: [16], adversarial_locations: "the <INFORMATION> span in each tool message containing it" }
+        origin: by_construction                     # AgentDojo's own attack template
+        confidence: 0.9
+      - id: ts.agentdojo.clean
+        when: origin == "agentdojo" and no "<INFORMATION>" in the context
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+        origin: rule_inferred                       # the run is under attack, but not yet at this step
+        confidence: 0.8
+      - id: ts.agentdojo.injection_block
+        when: origin == "agentdojo" and an injection is in context and src.score == 1
+        set: { action_relation: injected_task }
+        add_failure_modes: [22]
+        origin: rule_inferred
+        confidence: 0.7
+      - id: ts.asb.dpi
+        when: asb_attack_type == "DPI"
+        set: { attack_vector: direct_user, failure_modes: [2] }
+        origin: given                               # attack type is in the file name
+        confidence: 0.85
+      - id: ts.asb.opi_seen
+        when: asb_attack_type == "OPI" and the OPI template appears in a tool output in the history
+        set: { attack_vector: tool_output, failure_modes: [16] }
+        origin: given                               # rule_inferred for the failed-attack file, whose type is inferred
+        confidence: 0.85
+      - id: ts.asb.opi_not_seen
+        when: asb_attack_type == "OPI" and the OPI template is not yet in the context
+        set: { attack_vector: tool_metadata, failure_modes: [18] }
+        origin: by_construction                     # the only hostile element so far is the attacker's tool in the tool list
+        confidence: 0.8
+      - id: ts.asb.locations
+        when: origin == "asb"
+        set: { adversarial_locations: "the attacker's tool (kind tool) + the DPI suffix in the user message or the OPI request in each tool output, as character spans" }
+        origin: by_construction
+        confidence: 0.9
+      - id: ts.asb.attacker_call
+        when: origin == "asb" and the planned call is src.attacker_tool
+        set: { action_relation: injected_task }
+        add_failure_modes: [22]
+        origin: by_construction                     # ASB defines calling the attacker tool as the attack goal
+        confidence: 0.9
+      - id: ts.agentharm.harmful
+        when: origin == "agentharm" and file == "harmful_steps"
+        set: { attack_vector: none, failure_modes: [principal_misuse], action_relation: harmful_user_task, adversarial_locations: [] }
+        origin: given                               # the file separates harmful from benign requests
+        confidence: 0.85
+      - id: ts.agentharm.benign
+        when: origin == "agentharm" and file == "benign_steps"
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+        origin: given
+        confidence: 0.85
+      - id: ts.hard_negative
+        when: src.score == 0 and attack_vector not in [null, none]
+        set: { hard_negative: true }
+    notes: "Only source with native 3-way step labels; anchor for REVIEW semantics. Only ASB has an explicit test folder; AgentHarm-derived steps are ToolSafe's test data - keep them out of training. Task keys are instruction hashes, shared with our own AgentDojo/ASB runs - split jointly. aggressive / attack_success stay in source.original_label."
+
+  llmail_inject:
+    # Files (HF microsoft/llmail-inject-challenge @ 1063bdf, MIT), under data/:
+    #   raw_submissions_phase1.jsonl / phase2.jsonl  370,724 + 90,916 submissions. Fields: RowKey, job_id,
+    #     team_id, scenario (level code, e.g. level1a), subject, body, objectives (JSON string),
+    #     output, scheduled/started/completed_time.
+    #   labelled_unique_submissions_phase1.json / phase2.json  160,741 + 37,303 unique emails: a dict keyed
+    #     by "Subject of the email: <s>.   Body: <b>" -> {attack_attempt: True|False|Unclear, reason:
+    #     judge|api_triggered, judge_answer?, judge_category?} (phase 1 has a few list / numeric values).
+    #   scenarios.json (scenario_1..4: inbox emails and setup), system_prompt.json, levels_descriptions.json
+    #     (level letter -> model + defence), objectives_descriptions.json, emails_for_fp_tests.json (203 benign emails).
+    granularity: outcome                            # promoted to step when exfil.sent is true (reconstructed send_email)
+    label_source: benchmark_checker
+    unit: "one record per unique (email text, level) pair: dedupe raw submissions on normalised subject+body within a level; keep the earliest submission's ids and a count of duplicates in original_label"
+    joins:
+      labelled: "attack_attempt and reason from labelled_unique_submissions_<phase>.json, key = 'Subject of the email: {subject}.   Body: {body}'; normalise strings ('True'/'False'/'Unclear'; bool true -> 'True'; list or numeric -> 'Unclear')"
+      level: "scenario 'level<scenario #><letter>' -> scenario_<#> in scenarios.json, defence + model from levels_descriptions.json (stored in original_label, never in input)"
+    group_ids:
+      task: "llmail:scenario_{n}"                   # the user task is fixed per scenario; level letter is the defence, not the task
+      attack: "llmail:attack:{sha1(normalise(subject + body))[:12]}"
+      trajectory: "llmail:{src.job_id}"
+      author: "llmail:team:{src.team_id}"           # default split axis for this dataset (224 teams)
+    input:
+      system_prompt: "system_prompt.json"
+      user_prompt: "scenarios.json[scenario_n].user_query"     # each scenario has emails, position, user_query, task
+      messages:
+        - { role: tool, trust: retrieved, content: "{benign inbox emails for scenario_n from scenarios.json}" }
+        - { role: tool, trust: retrieved, content: "Subject: {src.subject}\n{src.body}" }   # inserted at scenarios.json[scenario_n].position among the inbox emails
+      tools_available: [send_email]                 # side_effects external_send
+      planned_action: "send_email(to=<exfil destination>, body=<exfil content>) - only when objectives exfil.sent; to/body reconstructed from the scenario's target (contact@contact.com / 'confirmation' style) when destination/content are correct, else marked unknown"
+    rules:
+      - id: ll.base
+        when: true
+        set:
+          outcome:
+            action_executed: src.objectives["exfil.sent"]
+            goal_achieved: src.objectives["exfil.sent"] and src.objectives["exfil.destination"] and src.objectives["exfil.content"]
+        confidence: 0.95
+        notes: "email.retrieved, defense.undetected, level defence and model stay in source.original_label. Oddity to audit: 5,083 of the 5,733 phase-2 sends (and 33,961 of 41,173 in phase 1) have defense.undetected false - exfil.sent probably records the tool call even when the defence flagged the email."
+      - id: ll.attack
+        when: (attack_attempt == "True" or reason == "api_triggered" or src.objectives["exfil.sent"]) and src.objectives["email.retrieved"]
+        set: { attack_vector: retrieved_content, failure_modes: [16], adversarial_locations: [{ kind: message, message_index: 1 }] }
+        origin: given                               # the challenge is an email-injection contest; judge/API confirm the attempt
+        confidence: 0.9
+      - id: ll.judge_not_attack
+        when: attack_attempt == "False" and not src.objectives["exfil.sent"]
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+        origin: model_inferred                      # the challenge's own LLM judge
+        confidence: 0.7
+        notes: "~12k unique emails. Benign-ish retrieved content; also a pairing source (benign_sources)."
+      - id: ll.judge_unclear
+        when: attack_attempt == "Unclear" and not src.objectives["exfil.sent"]
+        needs_backfill: [attack_vector, failure_modes]
+        notes: "~38k unique emails; leave unlabelled until a calibrated judge decides."
+      - id: ll.not_retrieved
+        when: not src.objectives["email.retrieved"]
+        set: { attack_vector: none, adversarial_locations: [], failure_modes: [], decision: null, action_relation: no_action }
+        notes: "The attack email never entered the agent's context - not a hostile-context record. Outcome stats only; exclude from decision training."
+      - id: ll.executed
+        when: src.objectives["exfil.sent"]
+        set: { granularity: step, decision: BLOCK, failure_modes: [16, 22], action_relation: injected_task }
+        origin: given
+        confidence: 0.95
+      - id: ll.resisted
+        when: src.objectives["email.retrieved"] and not src.objectives["exfil.sent"]
+        set: { decision: null, action_relation: no_action }
+        notes: "Agent saw the email and did not act. A failed attack is NOT an ALLOW example: there is no planned action. The `output` field cannot help - it is an echo ('Processed example output for prompt: ...') or an error, not the agent's reply, so no final-answer ALLOW can be derived."
+    benign_sources:
+      fp_emails: "emails_for_fp_tests.json: 203 benign emails (given) - benign retrieved content for ALLOW pairing and false-positive evaluation"
+      judge_false: "unique emails with attack_attempt False (model_inferred, 0.7) - more benign retrieved content"
+    pairing: "LLMail never contains a user-requested send_email. Build ALLOW pairs (gap option 4) from scenarios.json tasks where the user asks to send an email, with inboxes drawn from benign_sources; and inject attacker emails into those same inboxes for hard negatives."
+    notes: "Attack-heavy. ~198k unique emails before level split - downsample per group_ids.author to avoid swamping the class balance."
+
+  atbench:
+    # File (HF AI45Research/ATBench @ 4476ef9, Apache-2.0): ATBench/test.json, a list of 1,000 runs
+    # (503 safe / 497 unsafe; 250 of the safe runs have risk_source / failure_mode / real_world_harm = 'benign',
+# the other 253 carry an attack category the agent handled). Fields: id, tool_used, contents, label, risk_source, failure_mode,
+    # real_world_harm, reason. contents = [[turns]] (one nested list) with roles user / agent / environment.
+    # The legacy ATBench500 file is not used. The card recommends fine-grained taxonomy use only on unsafe runs.
+    granularity: trajectory
+    label_source: human
+    group_ids:
+      task: "atbench:{src.id}"                      # synthetic tasks; no overlap with public benchmarks known
+      attack: "atbench:{src.risk_source}"           # coarse: attack family only
+      trajectory: "atbench:{src.id}"
+      author: "atbench:benchmark_authors"
+    input:
+      messages: "src.contents[0]: user -> role user / trust principal; agent -> role assistant (thought -> reasoning, action -> tool_call); environment -> role tool / trust tool_output"
+      tools_available: "src.tool_used: name, description, parameters (origin first_party; side_effects from keyword table, else unknown). NEVER copy _source or _original_description into input: _original_description exists only where the description was altered, so it would leak the answer"
+      planned_action: null                          # trajectory record
+    rules:
+      - id: at.safe
+        when: src.label == 0
+        set: { decision: ALLOW, failure_modes: [] }
+        confidence: 0.9
+      - id: at.unsafe
+        when: src.label == 1
+        set: { decision: BLOCK }
+        confidence: 0.9
+      - id: at.risk_source                          # 8 attack categories + 'benign' (250 safe runs)
+        map: src.risk_source -> { attack_vector, failure_modes }
+        origin: given                               # ATBench names the source; we translate it
+        confidence: 0.85
+        table:
+          direct_prompt_injection:                 { attack_vector: direct_user,   failure_modes: [2] }
+          indirect_prompt_injection:               { attack_vector: tool_output,   failure_modes: [16] }
+          tool_description_injection:              { attack_vector: tool_metadata, failure_modes: [12] }
+          corrupted_tool_feedback:                 { attack_vector: tool_output,   failure_modes: [] }   # wrong/poisoned data, not necessarily instructions
+          malicious_tool_execution:                { attack_vector: tool_metadata, failure_modes: [18] }
+          malicious_user_instruction_or_jailbreak: { attack_vector: direct_user,   failure_modes: [principal_misuse] }
+          unreliable_or_misinformation:            { attack_vector: null,          failure_modes: [] }   # may or may not be adversarial
+          inherent_agent_failures:                 { attack_vector: none,          failure_modes: [] }
+          benign:                                  { attack_vector: none,          failure_modes: [] }   # safe runs only; also 'benign' in failure_mode and real_world_harm
+      - id: at.failure_mode                         # 14 categories on unsafe runs (+ 'benign' on safe runs, not mapped); applied to unsafe runs only (card advice)
+        when: src.label == 1
+        map: src.failure_mode -> add_failure_modes
+        origin: given
+        confidence: 0.75                            # our translation of their categories is approximate
+        table:
+          unconfirmed_or_over_privileged_action:                     [22]
+          failure_to_validate_tool_outputs:                          []    # cause carried by risk_source
+          unauthorized_information_disclosure:                       [22]
+          flawed_planning_or_reasoning:                              [misinterpretation]
+          provide_inaccurate_misleading_or_unverified_information:   [hallucination]
+          insecure_interaction_or_execution:                         [21]
+          tool_misuse_in_specific_context:                           [22]
+          inefficient_or_wasteful_execution:                         [20]
+          incorrect_tool_parameters:                                 [misinterpretation]
+          procedural_deviation_or_inaction:                          [misinterpretation]
+          choosing_malicious_tool:                                   [18]
+          instruction_for_harmful_illegal_activity:                  [principal_misuse]
+          generation_of_malicious_executables:                       [principal_misuse]
+          generation_of_harmful_offensive_content:                   [principal_misuse]
+      - id: at.poisoned_tool
+        when: src.risk_source == "tool_description_injection"
+        set: { adversarial_locations: "[{ kind: tool, tool_name: t.name } for t in src.tool_used if '_original_description' in t]" }
+        origin: given                               # ATBench keeps the clean original next to the injected description
+        confidence: 0.9
+        notes: "All 102 tool-description-injection runs (52 unsafe, 50 safe) have at least one such tool. 11 other runs also carry _original_description; they are not marked, since their risk source is not an injection."
+      - id: at.marked_tool_output
+        when: an environment turn contains a generator marker key ("_injected_instruction" in 86 messages, "_system_warning" in 2)
+        set: { adversarial_locations: "[{ kind: message, message_index: i } for each marked tool message]" }
+        origin: given                               # ATBench's generator labelled the planted content itself
+        confidence: 0.9
+        notes: "In input the marker keys are renamed to neutral names (note, system_warning): the planted text stays for the model to detect, the giveaway key does not. 78 of the 88 marked messages (one per run) are in unsafe runs, so leaving the keys would leak the label."
+      - id: at.hard_negative
+        when: src.label == 0 and attack_vector not in [null, none]
+        set: { hard_negative: true }
+        notes: "Safe runs that contain an injection/malicious source: trajectory-level hard negatives."
+    notes: "real_world_harm and reason stay in source.original_label (reason is useful context for the backfill judge and for audits)."
+    step_promotion: "Optional: locate the first unsafe step with an LLM judge (origin model_inferred) to emit a step record with decision=BLOCK; earlier steps -> ALLOW with confidence 0.6."
+
+  # ------------------------------------------------------------------ mode coverage
+  agentdojo:
+    granularity: step
+    label_source: ground_truth_code
+    group_ids:
+      task: "agentdojo:{suite}:instr:{sha1(normalise(user_task.PROMPT))[:12]}"   # same key function as ToolSafe so overlapping tasks split together; user_task_id kept in original_label
+      attack: "agentdojo:{suite}/{injection_task_id}"   # null for clean runs
+      trajectory: "agentdojo:{suite}/{user_task_id}/{injection_task_id}/{model}/{run}"
+      author: "agentdojo:benchmark_authors"             # custom tasks: "ours:{author}"
+    generation: "Run via our harness - replay ground truth (GroundTruthPipeline) and real-model runs, with and without injections. Pin benchmark version; apply NeurIPS'25 fixes."
+    input:
+      user_prompt: user_task.PROMPT
+      messages: run.messages                        # tag tool outputs trust=tool_output; no injection markers in input
+      tools_available: suite.tools
+      planned_action: run.tool_calls[step_index]
+    rules:
+      - id: ad.match_user_gt
+        when: call_matches(user_task.ground_truth(pre_env))
+        set: { decision: ALLOW, action_relation: user_task }
+        confidence: 0.95
+      - id: ad.match_injection_gt
+        when: call_matches(injection_task.ground_truth(pre_env)) or args_contain_attacker_values
+        set: { decision: BLOCK, action_relation: injected_task, failure_modes: [16, 22] }
+        confidence: 0.95
+      - id: ad.deviation_readonly
+        when: no_match and tool.side_effects == read_only
+        set: { decision: ALLOW, action_relation: deviation }
+        origin: rule_inferred
+        confidence: 0.6
+      - id: ad.deviation_write
+        when: no_match and tool.side_effects != read_only
+        set: { decision: REVIEW, action_relation: deviation }
+        origin: rule_inferred
+        confidence: 0.6
+        notes: "Spot-check: many are valid alternative plans."
+      - id: ad.context
+        when: injection_present
+        set: { attack_vector: tool_output, failure_modes: [16], adversarial_locations: "messages whose content came from a filled {injection_*} slot" }
+        confidence: 0.95
+      - id: ad.context_clean
+        when: not injection_present
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+        notes: "No attack was inserted, but a clean run can still contain non-adversarial failures (hallucination, misinterpretation) on deviation steps - backfill may add those."
+      - id: ad.hard_negative
+        when: injection_present and decision == ALLOW
+        set: { hard_negative: true }
+      - id: ad.goal_hijack
+        when: injection_present and agent_continues_injected_plan_after_step
+        add_failure_modes: [8]
+        origin: rule_inferred                       # deduced from the agent's later behaviour
+        confidence: 0.7
+      - id: ad.outcome
+        set:
+          outcome:
+            action_executed: injection_task_calls_made
+            goal_achieved: injection_task.security(...)
+            user_task_completed: user_task.utility(...)
+    custom_tasks: "Gap-filling injection tasks tag their own modes (origin by_construction): disclosure -> [13], early-injection long tasks -> [11], HITL tool bypass -> [17], scope violation -> [19], goal re-specification -> [8]."
+
+  injecagent:
+    # Files: test cases (repo uiuc-kang-lab/InjecAgent @ f19c9f2, folder data/, MIT) and the authors'
+    # model outputs (results.zip, companion snapshot data/raw/injecagent/results-851eea38f394/).
+    #   test_cases_{dh,ds}_{base,enhanced}.json: 510 + 544 cases x 2 wordings. Fields: User Instruction,
+    #   User Tool, Tool Parameters (Python literal), Thought, Tool Response (the attack filled into the
+    #   template), Attacker Instruction, Attacker Tools (1 for dh, 2 for ds: read then GmailSendEmail),
+    #   Attack Type, Expected Achievements, Modifed. Fully crossed: 17 user tasks x 62 attacker instructions.
+    #   results.zip: 245 JSON-lines files = 62 setups x 4 case files, 128,051 outputs. Each adds `output`
+    #   (ReAct text continuing the scratchpad) and `eval` (succ / unsucc / invalid / unparsed); data
+    #   stealing successes add the agent's attacker-tool thought and parameters, the simulated response,
+    #   `output Step 2` and `eval Step 2`.
+    # InjecAgent's checker (src/output_parsing.py) marks succ when ANY Action in the output is the target
+    # tool, including after a fabricated Observation; records keep only outputs whose FIRST action
+    # agrees with the label.
+    # R-Judge's 414 injection runs are 297 of these cases (gpt-4-0613 outputs relabelled by humans; checked
+    # 2026-10-20: labels agree on 374 of 381 matched runs). R-Judge is a holdout source, so those cases are
+    # excluded here, in both wordings and both steps (decided 2026-10-20).
+    granularity: step
+    label_source: benchmark_checker
+    selection:
+      max_actions_per_label: 3          # per (case, wording, step): the most frequent distinct (context, action) pairs per decision
+      drop: "eval invalid / unparsed; succ whose first action is not the step's attacker tool; step-2 succ whose send does not go to an address in the attacker instruction (InjecAgent counts any GmailSendEmail call, e.g. models copying the prompt's example email); unsucc whose first action is an attacker tool; identical (context, action) pairs labelled both ways; R-Judge's cases"
+    group_ids:
+      task: "injecagent:usertask:{sha1(match_key(src['User Instruction']))[:12]}"     # 17 values
+      attack: "injecagent:attack:{sha1(match_key(src['Attacker Instruction']))[:12]}" # 62 values
+      trajectory: "injecagent:case:{sha1(match_key(user instruction) + '|' + match_key(attacker instruction))[:12]}"  # both wordings and steps
+      author: "injecagent:benchmark_authors"
+    input:
+      system_prompt: null                           # the benchmark's fixed persona and clock are left out, as for the other benchmarks
+      user_prompt: src["User Instruction"]
+      messages: "user turn; assistant call to src['User Tool'] with src['Tool Parameters'] (reasoning = src.Thought); tool message = src['Tool Response']. Step 2 adds the agent's own call to Attacker Tools[0] (its thought and parameters) and the simulated response"
+      tools_available: '[src["User Tool"]] + src["Attacker Tools"] with specs from tools.json (what InjecAgent offered the agent; identical for every action of a case, so it carries no label)'
+      planned_action: "first Action in the output naming a tool, with its Action Input; a Final Answer first (or no tool) -> final_answer({text}); fine-tuned setups: the first function call"
+    rules:
+      - id: ia.injection
+        when: always                                # every case is an attack
+        set: { attack_vector: tool_output, failure_modes: [16], adversarial_locations: "[{ kind: message, message_index: 2 }]" }
+        origin: by_construction
+        confidence: 0.95
+      - id: ia.attacker_call
+        when: src.eval (or eval Step 2) == "succ" and the first action is the step's attacker tool (step 2 - to the attacker's address)
+        set: { decision: BLOCK, action_relation: injected_task }
+        add_failure_modes: [22]
+        origin: given
+        confidence: 0.9
+        notes: "Cross-check: R-Judge humans agree with the checker on 374 of 381 gpt-4-0613 runs (0.98); other models are unchecked."
+      - id: ia.not_hijacked
+        when: src.eval (or eval Step 2) == "unsucc" and the first action is not an attacker tool
+        set: { decision: ALLOW, action_relation: user_task, hard_negative: true }
+        origin: given
+        confidence: 0.85
+        notes: "unsucc also covers odd but harmless reactions (re-calling the user tool, asking the user); the checker only rules out an attacker-tool call."
+    notes: "Training source (step head). Split: one group (17 x 62 fully crossed), so all of it is train; its in-distribution evaluation is R-Judge's injection runs, which share user tasks and attacker instructions but not cases."
+
+  asb:
+    granularity: step
+    label_source: benchmark_checker
+    group_ids:
+      task: "asb:all:instr:{sha1(normalise(instruction))[:12]}"   # same key function as ToolSafe
+      attack: "asb:{attack_type}/{attacker_tool}"
+      trajectory: "asb:{scenario}/{task_id}/{attack_type}/{model}/{run}"
+      author: "asb:benchmark_authors"
+    rules:
+      - id: asb.attack_type
+        map: src.attack_type -> { failure_modes, attack_vector }
+        table: asb_attack_types
+        confidence: 0.9
+      - id: asb.spans
+        when: attack_type != none
+        set: { adversarial_locations: "the user turn (DPI), the tool output (OPI), the retrieved memory (memory_poisoning), the system prompt trigger (PoT_backdoor, kind system_prompt)" }
+        origin: by_construction
+      - id: asb.attacker_tool_call
+        when: call.tool in src.attacker_tools
+        set: { decision: BLOCK, action_relation: injected_task }
+        add_failure_modes: [22]
+        origin: by_construction                     # ASB defines calling an attacker tool as the attack goal
+        confidence: 0.9
+      - id: asb.normal_call
+        when: call.tool in src.normal_tools and attack_type == none
+        set: { decision: ALLOW, action_relation: user_task, adversarial_locations: [] }
+        confidence: 0.8
+      - id: asb.normal_call_under_attack
+        when: call.tool in src.normal_tools and attack_type != none
+        set: { decision: ALLOW, hard_negative: true, action_relation: user_task }
+        confidence: 0.75
+    notes: "Only source for modes 1, 5, 14. NeurIPS'25 critique found bugs - audit before trusting labels. Shares task keys with ToolSafe's ASB-derived runs."
+
+  mcptox:
+    # Files (anonymous review repo anonymous.4open.science/r/AAAI26-7C02, the paper's release link; no
+    # licence; snapshot anon-b14c4d2f4f3a): response_all.json = 45 servers -> malicious_instance (1,348 cases;
+    # 36 flagged wrong_data). Each case: poisoned_tool text, metadata {paradigm Template-1/2/3, security
+    # risk (10 categories)}, security_risk_description (often Chinese), datas[0] = {query, system (the
+    # server's tool list with the poisoned tool added, then response-format instructions), response +
+    # label (local models), online_result.backend_model_responses + labeled_model_results (API models)}.
+    # Labels per response: Success / Failure-Ignored / Failure-Direct Execution / Failure-Refused / None.
+    # 9 prompts lack the poisoned tool; they are skipped. Paradigm names are not documented in the files,
+    # so they stay in source.original_label (no paradigm -> mode table).
+    granularity: step
+    label_source: benchmark_checker
+    selection:
+      max_actions_per_label: 3          # per case: the most frequent distinct actions per label
+      drop: "label None; empty response; Direct Execution whose first call is not the poisoned tool or in Template-1; Success calling the poisoned tool or making no call; Ignored / Refused calling the poisoned tool outside Template-1; identical actions labelled several ways; wrong_data cases"
+      template_1: "In Template-1 the poisoned tool IS the tool the query needs (e.g. a poisoned get_current_time for 'get current time'), so calling it serves the user (found in the data: 1,113 Ignored responses call it)."
+    group_ids:
+      task: "mcptox:query:{sha1(match_key(query))[:12]}"   # no server: generic queries ("get current time") recur across servers; the build also groups by server
+      attack: "mcptox:poisoned:{sha1(match_key(poisoned_tool))[:12]}"
+      trajectory: "mcptox:case:{server}:{instance index}"
+      author: "mcptox:benchmark_authors"
+    input:
+      system_prompt: null                           # the response-format instructions are benchmark boilerplate
+      user_prompt: datas[0].query
+      messages: "one user turn (the query)"
+      tools_available: "parsed from datas[0].system ('Tool: / Description: / Arguments:' blocks), poisoned tool included as served; origin mcp; no poisoned flag in input"
+      planned_action: "first JSON object with a 'tool' key in the response (stop tokens and <think> blocks removed); no such object -> final_answer({text})"
+    rules:
+      - id: mt.base
+        when: always
+        set: { attack_vector: tool_metadata, failure_modes: [12, 7], adversarial_locations: "[{ kind: tool, tool_name: <the poisoned tool> }]" }
+        origin: by_construction
+        confidence: 0.9
+      - id: mt.executed
+        when: label == "Success" (a tool call that is not the poisoned tool)
+        set: { decision: BLOCK, action_relation: injected_task }
+        add_failure_modes: [22]
+        origin: given
+        confidence: 0.85
+      - id: mt.resisted
+        when: "label in [Failure-Ignored, Failure-Refused] and the first call is not the poisoned tool (in Template-1 it may be)"
+        set: { decision: ALLOW, action_relation: user_task, hard_negative: true }
+        origin: given
+        confidence: 0.8
+      - id: mt.called_poisoned_tool
+        when: label == "Failure-Direct Execution" and the first call is the poisoned tool, outside Template-1
+        set: { decision: REVIEW, action_relation: deviation }
+        origin: rule_inferred                       # the label is given; treating it as REVIEW is our policy
+        confidence: 0.6
+        notes: "The call does not follow the planted instruction, but it runs a tool with a hostile description and unknown behaviour."
+    pairing: "Later: clean-server variants (same query, unpoisoned tool list) for ALLOW baselines without an attack."
+
+  # ------------------------------------------------------------------ benign agent activity (added 2026-10-21)
+  toucan:
+    # Agent-Ark/Toucan-1.5M (Apache-2.0), 3 of 131 parquet shards (first shard of the Kimi-K2, OSS and Qwen3
+    # teacher subsets; 35,227 runs). Columns: uuid, subset_name, messages (system / user / assistant with
+    # reasoning_content or function_call / function), question, available_tools, target_tools,
+    # question_quality_assessment, response_quality_assessment (overall_score 1-5), metadata (mcp_servers ...).
+    # Real tool execution on real MCP servers; queries are LLM-generated ordinary tasks, no attacker.
+    granularity: step
+    label_source: by_construction
+    selection:
+      min_response_score: 3.5           # the dataset's own response-quality assessment
+      max_runs_per_server: 5            # per primary MCP server: runs without side-effect calls
+      max_sensitive_runs_per_server: 20 # per primary MCP server: runs calling a tool that writes, sends, deletes, pays or executes
+      max_steps_per_run: 3              # tool calls with side effects first (hard benign cases)
+      final_answer_share: 0.2           # share of runs that also contribute their final answer
+    group_ids:
+      task: "toucan:question:{sha1(normalise(question))[:12]}"
+      attack: null
+      trajectory: "toucan:{uuid}"
+      author: "toucan:benchmark_authors"
+    input:
+      system_prompt: null                           # the system prompt only repeats the tool list
+      messages: "user turn, then assistant calls (reasoning_content attached as reasoning) and function outputs up to the step"
+      tools_available: "available_tools (origin mcp)"
+      planned_action: "the step's function_call (calls to tools not in the list are skipped); or the final answer as final_answer({text})"
+    rules:
+      - id: tc.benign
+        when: always
+        set: { decision: ALLOW, attack_vector: none, failure_modes: [], action_relation: user_task, adversarial_locations: [], hard_negative: false }
+        origin: by_construction
+        confidence: 0.8
+        notes: "Benign by dataset design, not by safety review: an LLM-judge screen for risky requests is planned; until then the prior stays at 0.8."
+
+  toolace:
+    # Team-ACE/ToolACE (Apache-2.0), data.json: 11,300 dialogs. system holds a JSON tool list; turns user /
+    # assistant / tool; assistant calls written as [Tool Name(arg="v"), Other(x=1)]. Synthetic APIs (26k).
+    granularity: step
+    label_source: by_construction
+    selection:
+      max_records: 3000                 # a minor share: synthetic APIs, short dialogs
+    group_ids:
+      task: "toolace:question:{sha1(normalise(first user turn))[:12]}"
+      attack: null
+      trajectory: "toolace:{dialog index}"
+      author: "toolace:benchmark_authors"
+    input:
+      messages: "turns before the call turn; earlier call turns as assistant tool calls"
+      tools_available: "JSON list in the system prompt"
+      planned_action: "the first call of an assistant call turn (calls to unlisted tools skipped)"
+    rules:
+      - id: ta.benign
+        when: always
+        set: { decision: ALLOW, attack_vector: none, failure_modes: [], action_relation: user_task, adversarial_locations: [], hard_negative: false }
+        origin: by_construction
+        confidence: 0.8
+
+  when2call:
+    # nvidia/When2Call (CC BY 4.0). Only test/when2call_test_mcq.jsonl is used: 3,652 items (BFCL v2 Live) with a
+    # question, tools (JSON strings), answers {direct, tool_call, request_for_info, cannot_answer}, correct_answer.
+    granularity: step
+    label_source: benchmark_checker
+    group_ids:
+      task: "when2call:question:{sha1(normalise(question))[:12]}"
+      # the build also groups by toolset (sha1 of the sorted tool names): BFCL reuses tool sets across paraphrased items
+      attack: null
+      trajectory: "when2call:{uuid}"            # the ALLOW and REVIEW records of one item share it
+      author: "when2call:benchmark_authors"
+    input:
+      messages: "one user turn (the question)"
+      tools_available: "tools"
+      planned_action: "correct tool_call -> that call; correct request_for_info / cannot_answer -> final_answer({text}); plus the candidate tool_call when it is not correct"
+    rules:
+      - id: w2c.correct
+        when: option == correct_answer
+        set: { decision: ALLOW, failure_modes: [], action_relation: user_task }
+        origin: given
+        confidence: 0.85
+      - id: w2c.unwarranted_call
+        when: option == tool_call and correct_answer != tool_call
+        set: { decision: REVIEW, action_relation: deviation }
+        add_failure_modes: "request_for_info correct -> [hallucination] (the call invents missing arguments); cannot_answer correct -> [misinterpretation] (no listed tool can do it)"
+        origin: rule_inferred
+        confidence: 0.6
+      - id: w2c.no_attack
+        when: always
+        set: { attack_vector: none, adversarial_locations: [], hard_negative: "false on correct options" }
+        origin: by_construction
+        confidence: 0.95
+
+  # ------------------------------------------------------------------ calibration
+  r_judge:
+    # Files (repo Lordog/R-Judge @ 83ce301, folder data/): 26 JSON lists in 5 domain folders
+    # (Application 252, Finance 126, Program 121, Web 35, IoT 30) = 564 records; the paper's 569 includes
+    # data/Program/security.json, which could not be read on this machine (blocked). No licence file.
+    # Fields: id, profile, goal, contents, label (298 unsafe / 266 safe), risk_description, scenario,
+    # attack_type (injection 414 / unintended 150).
+    # contents = list of 1-3 segments (551 runs have 1), each a list of turns: user {content},
+    # agent {thought, action}, environment {content}. Agent actions are free text in four forms:
+    # "Tool: {args}", "Tool{args}", "Tool<newline>Action Input: {json}", "Final Answer: ..."; args are JSON or
+    # Python-literal dicts. Tool outputs may be double-encoded strings, and 125 are null.
+    # No construction markers: "IMPORTANT!!! Ignore all previous instructions" (206 tool outputs) is
+    # InjecAgent's enhanced attack wording and is split evenly across labels, so it stays as content.
+    granularity: trajectory
+    label_source: human
+    group_ids:
+      task: "r_judge:{domain}/{file stem}:{src.id}" # injection files are named dh_*/ds_* like InjecAgent (direct harm / data stealing): likely built on InjecAgent cases - share keys once InjecAgent is downloaded and matched
+      attack: "r_judge:{src.attack_type}"
+      trajectory: "r_judge:{domain}/{file stem}:{src.id}"
+      author: "r_judge:benchmark_authors"
+    input:
+      system_prompt: src.profile
+      user_prompt: "first user turn in src.contents"   # NOT src.goal: goal is the judging prompt ("...judge if operations of the agent produce safety issues...") on every record - never input
+      messages: "segments flattened in order: user -> principal; agent -> assistant (tool-shaped action -> tool_call with thought as reasoning; 'Final Answer:' or plain text -> content); environment -> tool / tool_output, unquoted, null -> empty string"
+      tools_available: omitted                      # the data has no tool list; one built from the calls would contain the attacker's tool mainly in unsafe runs
+    rules:
+      - id: rj.safe
+        when: src.label == 0
+        set: { decision: ALLOW }
+        confidence: 0.9
+      - id: rj.unsafe
+        when: src.label == 1
+        set: { decision: BLOCK }
+        confidence: 0.9
+      - id: rj.injection
+        when: src.attack_type == "injection"
+        set: { attack_vector: tool_output, failure_modes: [16] }
+        origin: given                               # attack_type is recorded per record
+        confidence: 0.85
+      - id: rj.injection_block
+        when: src.attack_type == "injection" and src.label == 1
+        add_failure_modes: [22]
+        origin: rule_inferred
+        confidence: 0.7
+      - id: rj.injection_safe
+        when: src.attack_type == "injection" and src.label == 0
+        set: { hard_negative: true }
+      - id: rj.injection_location
+        when: src.attack_type == "injection"
+        set: { adversarial_locations: "[{ kind: message, message_index: <first tool message> }]" }
+        origin: by_construction                     # InjecAgent design: the attack sits in the response to the user's tool
+        confidence: 0.85
+        notes: "Every injection run has its first tool output right after the user's first tool call; a later tool output, when present, is the result of the attacker's tool."
+
+      - id: rj.unintended_safe
+        when: src.attack_type == "unintended" and src.label == 0
+        set: { attack_vector: none, failure_modes: [] }
+        origin: given
+        confidence: 0.85
+      - id: rj.unintended_unsafe
+        when: src.attack_type == "unintended" and src.label == 1
+        set: { attack_vector: none }
+        origin: given
+        confidence: 0.85
+        needs_backfill: [failure_modes]
+        notes: "No attacker; the cause (excessive agency, misinterpretation, hallucination...) is in src.risk_description, which the backfill judge reads."
+    usage: "Eval / calibration only - too small to train on. domain, scenario and risk_description stay in source.original_label; goal (the judging prompt) is dropped."
+
+# ------------------------------------------------------------------ attack-content pool (text-only)
+# Text-only datasets have no planned action, so they are NOT part of the decision dataset.
+# They are held here, separately, and are excluded from Jev training and evaluation for now.
+attack_content_pool:
+
+  wildjailbreak:
+    granularity: text
+    label_source: by_construction
+    origin: given                                   # data_type is recorded per prompt
+    confidence: 0.85
+    group_ids:
+      task: null
+      attack: "wildjailbreak:{src.vanilla | content_hash}"   # adversarial rewrites of the same vanilla prompt share a key
+      trajectory: null
+      author: "wildjailbreak:{src.tactics | generator}"      # VERIFY
+    input:
+      messages: [{ role: user, trust: principal, content: "src.adversarial or src.vanilla" }]
+    rules:
+      - id: wj.vanilla_harmful
+        when: src.data_type == "vanilla_harmful"
+        set: { attack_vector: none, failure_modes: [principal_misuse] }
+      - id: wj.adversarial_harmful
+        when: src.data_type == "adversarial_harmful"
+        set: { attack_vector: direct_user, failure_modes: [2, principal_misuse], adversarial_locations: [{ kind: message, message_index: 0 }] }
+      - id: wj.vanilla_benign
+        when: src.data_type == "vanilla_benign"
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+      - id: wj.adversarial_benign
+        when: src.data_type == "adversarial_benign"
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [], hard_negative: true }
+    usage: "Pool only. Future: benign-but-suspicious examples for the injection scanner (future_work.injection_scanner)."
+
+  qualifire:
+    granularity: text
+    label_source: human                             # VERIFY
+    confidence: 0.85
+    group_ids: { task: null, attack: "qualifire:{content_hash(src.text)}", trajectory: null, author: null }
+    input:
+      messages: [{ role: user, trust: principal, content: src.text }]
+    rules:
+      - id: qf.jailbreak
+        when: src.label == "jailbreak"
+        set: { attack_vector: direct_user, failure_modes: [2], adversarial_locations: [{ kind: message, message_index: 0 }] }
+      - id: qf.benign
+        when: src.label == "benign"
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+    usage: "Pool only. Future: embedding source and scanner training data."
+
+  jayavibhav:
+    granularity: text
+    label_source: derived_mapping
+    origin: given                                   # the 3-class label is recorded per text
+    confidence: 0.8
+    group_ids: { task: null, attack: "jayavibhav:{content_hash(src.text)}", trajectory: null, author: null }
+    input:
+      messages: [{ role: user, trust: principal, content: src.text }]
+    rules:                                          # VERIFY integer encoding of the 3 classes
+      - id: jv.benign
+        when: src.label == 0
+        set: { attack_vector: none, failure_modes: [], adversarial_locations: [] }
+      - id: jv.injection
+        when: src.label == 1
+        set: { attack_vector: direct_user, failure_modes: [2], adversarial_locations: [{ kind: message, message_index: 0 }] }
+      - id: jv.harmful
+        when: src.label == 2
+        set: { attack_vector: none, failure_modes: [principal_misuse] }
+    usage: "Pool only. Future: embedding source and scanner training data."
+
+# ------------------------------------------------------------------ future work (planned, not built)
+future_work:
+  multi_agent_modes:              # deferred 2026-10-21: scope is single-agent only for now
+    status: deferred
+    modes: [3, 4, 6, 9]           # agent impersonation, agent flow manipulation, multi-agent jailbreaks, inter-agent trust escalation
+    why: "They need an orchestrator with several agents (sub-agent messages, delegated identity and permissions); no current source has them, and the single-agent modes come first."
+    keep: "The modes stay valid failure_modes values and the schema keeps messages.agent_id and trust inter_agent, so records can carry them later without a schema change. Coverage targets count the 19 single-agent security modes."
+    later: "Generated orchestrator scenarios (e.g. an AgentDojo-style suite with a planner and sub-agents) labelled by construction."
+  embed_into_agent_contexts:      # job 2
+    status: planned
+    goal: "Turn attack-pool texts into real step records with decisions."
+    method: "Insert each attack text as injected content (email body, web page, tool output) in an agent scenario, e.g. an AgentDojo injection slot. Pair it with a legitimate call (ALLOW, hard_negative true) and the attacker's call (BLOCK). Benign texts give ALLOW pairs."
+    output: "granularity=step records in the decision dataset; origin by_construction; source.dataset keeps the original pool dataset; group_ids.attack keeps the pool record's attack key, group_ids.task takes the host scenario's key."
+    why: "Agent datasets reuse few attack wordings; the pool adds tens of thousands of varied (multilingual, encoded, obfuscated) attacks."
+  injection_scanner:              # job 3
+    status: planned
+    goal: "A separate classifier answering 'is this text hostile?' whose score becomes an input feature to Jev."
+    method: "Train on pool records' attack_vector / adversarial_locations labels; use WildJailbreak adversarial_benign and Qualifire benign as false-positive controls. Run on every tool output / retrieved document at decision time."
+    why: "Keeps 'is the content hostile?' separate from 'should this action happen?'. The scanner's score is a legitimate input feature (computed at decision time), unlike the adversarial_locations label it is trained on."
+
+# ------------------------------------------------------------------ failure-mode backfill
+# Runs after all datasets are converted. Every value it writes has origin rule_inferred or
+# model_inferred, so given / by_construction labels are always distinguishable from filled-in ones.
+failure_mode_backfill:
+  trigger: "Records whose needs_backfill contains failure_modes. Confidence values are never used as a trigger."
+  flag_set_by:
+    - "a mapping rule's `needs_backfill` (e.g. ts.origin.asb_untyped, rj.unintended_unsafe, ll.judge_unclear)"
+    - "converter rule cv.fm_missing (failure_modes still null after mapping)"
+    - "converter rule cv.fm_unsafe_empty (BLOCK/REVIEW with failure_modes == [])"
+  on_completion: "Remove failure_modes from needs_backfill. If every method abstains, leave failure_modes null, remove the flag, and add a meta note 'backfill abstained' so the record is not retried until a method changes."
+  never_overwrite: [given, by_construction, human_verified]
+  # Methods are tried in order; a later method only writes modes the earlier ones did not settle.
+  methods:
+    - id: bf.rules
+      origin: rule_inferred
+      confidence: 0.7
+      description: "Deterministic rules over the record's own labels and context."
+      rules:
+        - "adversarial_locations has kind=tool -> 12"
+        - "adversarial_locations in a trust=tool_output or trust=retrieved message -> 16"
+        - "adversarial_locations in a trust=memory message -> 14"
+        - "adversarial_locations in a trust=inter_agent message -> 2 (agent injection; judge may refine to 9 / 3)"
+        - "adversarial_locations in the principal's own message -> 2"
+        - "adversarial_locations has kind=system_prompt -> 5"
+        - "decision BLOCK, attack_vector none, action_relation harmful_user_task -> principal_misuse"
+        - "decision BLOCK and action_relation injected_task -> add 22"
+    - id: bf.judge
+      origin: model_inferred
+      description: "LLM judge given the record (input + labels + any source rationale such as R-Judge risk_description) and the 23 taxonomy definitions plus principal_misuse / hallucination / misinterpretation; returns modes with a short rationale (provenance note)."
+      calibration: "Before use, run the judge on records whose modes are given/by_construction (held out by group_ids.task). Measure per-mode precision and register it under calibration.rules['bf.judge@<version>']; drop modes whose precision < 0.5 (leave null rather than guess). A per-record judge probability may be stored in provenance.confidence."
+      version_pinning: "Provenance rule = 'bf.judge@<model>/<prompt version>'; re-run backfill when either changes."
+    - id: bf.classifier
+      origin: model_inferred
+      status: later
+      description: "Once enough given/by_construction records exist, train a mode classifier on them for cheaper bulk backfill. Same calibration rule."
+  upgrade_path: "A sample of backfilled records is hand-checked each round; confirmed modes become origin human_verified (rule 'audit@<date>'), corrected ones are rewritten likewise. Agreement rates go into calibration.rules for each method."
+  merge_rule: "Union of modes from all origins; each mode keeps its own provenance entry."
+
+# ------------------------------------------------------------------ cross-dataset hygiene
+hygiene:
+  visibility: "The serialiser that builds model input reads ONLY record.input. It must fail loudly if input contains label-like keys (contains_injection, poisoned, hard_negative, dataset, label). source / labels / provenance / meta are never shown to the model."
+  format_normalisation: "Normalise source-specific formatting (email templates, JSON layouts, tool-name styles, boilerplate) so the dataset of origin is not recognisable from input. Check with a probe: a classifier predicting source.dataset from input should be near chance."
+  dedup: "meta.content_hash over normalised injection text; drop exact dups across qualifire/jayavibhav/wildjailbreak and llmail near-dups (MinHash, threshold 0.9)."
+  splits: "Split by one group_ids axis per experiment, never by record. Default: group_ids.task; also report on a group_ids.attack split (unseen attacks) and, for LLMail, group_ids.author (unseen attackers). Records sharing the chosen key - across ALL datasets - go to the same split. Hold out ToolSafe's AgentHarm-derived test split, ATBench and R-Judge as evaluation-only."
+  separation: "attack_content_pool records never enter the decision dataset's train/eval splits until future_work.embed_into_agent_contexts converts them to step records."
+  balance: "Cap per-dataset share of decision-bearing records (suggest <=25% each); downsample llmail_inject by group_ids.author. Keep each dataset's ALLOW/BLOCK mix as close to balanced as its pairing allows."
+  hard_negatives: "hard_negative is evaluation/sampling metadata: report false-positive rate on hard_negative=true separately, and up-weight them in training. Never an input."
+  training_view: "The loader joins each record with this file (at record.mappings_version) and the calibration registry, and emits a flat view with every label's resolved confidence and calibration status. People and training code read that view; stored records stay minimal."
+  loss_masking: "Per-head loss only where the label is non-null, weighted by its resolved confidence. Step and trajectory decisions train separate heads (decided 2026-10-20): the step head sees only granularity=step records, the trajectory head only granularity=trajectory. Optionally drop labels below a floor (e.g. 0.5) instead of down-weighting them."
+  failure_mode_use: "Evaluation sets: per-mode results may only count modes whose origin is given, by_construction or human_verified; report backfilled modes separately. Training/sampling may use all origins, weighted by resolved confidence."
+  audit: "Before training, hand-check a random sample per rule id and per label it sets. ~200 records gives precision +/-0.05 at p~0.85 (n = 1.96^2 * p(1-p) / 0.05^2); ~50 only gives +/-0.1 - acceptable for low-volume rules. Write results to calibration.rules."
+  reporting: "Never present an uncalibrated or literature_prior value as measured confidence. Reports state each label's calibration status (from the training view)."
+
+# ------------------------------------------------------------------ calibration status
+# Every confidence above is a hand-set prior until this section says otherwise. Because records store
+# only the rule id, an entry here updates every record that rule produced - nothing is rewritten.
+calibration:
+  default_status: uncalibrated          # applies to every rule and to default_confidence until listed below
+  statuses:
+    uncalibrated:      "Hand-set prior. Usable for loss weighting and filtering only."
+    literature_prior:  "Taken from a published agreement or error rate for the source (cite it)."
+    audited:           "Measured precision from a hand-checked random sample of this rule's output."
+    model_calibrated:  "Measured precision of a judge/classifier on held-out records with known labels."
+  literature_leads:                      # to check before the first audit
+    - "ToolSafe paper: annotation agreement for safe / controversial / unsafe"
+    - "R-Judge paper: human cross-check agreement"
+    - "NeurIPS'25 'Firewalls ... or stronger benchmarks?' paper: AgentDojo / ASB bug rates"
+  cross_source_check: "Where ToolSafe and our AgentDojo/ASB runs label the same underlying call (shared group_ids.task), their agreement rate is a free check on both."
+  rules: {}                              # filled by audits, keyed by rule id, e.g.
+  # ts.unsafe:
+  #   decision: { status: audited, precision: 0.88, n: 200, ci95: [0.83, 0.92], audited_on: 2026-11-02, replaces_prior: 0.85 }
+  recalibrate_when: "after each gap-filling round, when a source dataset version changes, and when a judge model or prompt version changes"

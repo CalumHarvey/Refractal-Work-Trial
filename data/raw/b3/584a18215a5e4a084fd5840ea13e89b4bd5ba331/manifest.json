@@ -1,0 +1,315 @@
+{
+  "dataset": "b3",
+  "source": "https://huggingface.co/datasets/Lakera/b3-agent-security-benchmark-weak (all files at this revision)",
+  "license": "CONFLICT: README says MIT, HF tag 'other', LICENSE file is a custom research-only, non-commercial licence (no redistribution for non-research purposes). Treated as research-only.",
+  "notes": "Public 'weak' subset only: 210 attacks x 3 defence levels = 630 rows; the authors excluded the top-scoring attacks. Full 194,331 attacks are not public.",
+  "revision": "584a18215a5e4a084fd5840ea13e89b4bd5ba331",
+  "downloaded_at": "2026-10-21T10:48:28+00:00",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 2461,
+      "sha256": "e7a120ab07b1bc5b486be249e9fc6c83d59448d0093e1dfebe95d1566d9cafc0"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1529,
+      "sha256": "0ad4d0af339f0e251dcb59846ef8c96d8e6ea1b43795881b64e82ffc7653bdce"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4101,
+      "sha256": "3aada19d272ab2d98c552a9c01e52ce893242711065a7a13c88794da96b63882"
+    },
+    {
+      "path": "selected_attacks_low-quality.csv",
+      "bytes": 536499,
+      "sha256": "69163f637acc81d11efb4dff0540a1a2fea50294094acc5165dda9b93482f874"
+    },
+    {
+      "path": "threat_snapshots/TS10_legal_TI_exfiltration_0.json",
+      "bytes": 4572,
+      "sha256": "d92028e3d1942bd85945d14b5c21f2fdbccfd34fb3a3f384be855fa8b569bc14"
+    },
+    {
+      "path": "threat_snapshots/TS10_legal_TI_exfiltration_1.json",
+      "bytes": 7940,
+      "sha256": "3283f2ddcada2a0af3c07d672b28dbd78693d6e99dc7ea5af046159f68d173f1"
+    },
+    {
+      "path": "threat_snapshots/TS1_cco_coach_0.json",
+      "bytes": 4278,
+      "sha256": "cee0b445ad97bdf4200da048f3919577c6a008127b713e5ed72e3121c5fbbad7"
+    },
+    {
+      "path": "threat_snapshots/TS1_cco_coach_1.json",
+      "bytes": 16074,
+      "sha256": "8e6ba5baccfdd80fd8628614a2319fd16422b6911fc39eb7c3a717a22c506f54"
+    },
+    {
+      "path": "threat_snapshots/TS2_trip_planner_phishing_0.json",
+      "bytes": 14940,
+      "sha256": "535d4f6c8b7ddbcf4bb41c9237d4ea3d952da5f8fff1beae820094b03c7ac9cc"
+    },
+    {
+      "path": "threat_snapshots/TS2_trip_planner_phishing_1.json",
+      "bytes": 16641,
+      "sha256": "c43fa0915e50dbf33d6e0a4faf237dadaa7fe72e61c48aaa6068ce1b993bc8eb"
+    },
+    {
+      "path": "threat_snapshots/TS3_mcp_chat_poisoning_0.json",
+      "bytes": 4594,
+      "sha256": "df31ec5f97855b38d02b93d0eb9b7c26067746a9d4a22f3ff78fa9c815a58cca"
+    },
+    {
+      "path": "threat_snapshots/TS3_mcp_chat_poisoning_1.json",
+      "bytes": 5713,
+      "sha256": "b80698043bebeb198b6cd964e7c19c9d0b4ae2474afd7fb78e699d332cea379e"
+    },
+    {
+      "path": "threat_snapshots/TS4_solace_profane_chat_0.json",
+      "bytes": 1516,
+      "sha256": "9bad134603001034a6e3179b5f67b7ff273e70d680113fa6476c705be93e7290"
+    },
+    {
+      "path": "threat_snapshots/TS4_solace_profane_chat_1.json",
+      "bytes": 8336,
+      "sha256": "098fa26da0712337fdf0434911b7290abb56cb1c1e13df635109ded6037e73a6"
+    },
+    {
+      "path": "threat_snapshots/TS5_chatapp_refuse_0.json",
+      "bytes": 2852,
+      "sha256": "f3457e80ec40c91f0ce3cf5e31ce2d3698fe7fb1ceab8700ff28eb60c35a7aaf"
+    },
+    {
+      "path": "threat_snapshots/TS5_chatapp_refuse_1.json",
+      "bytes": 7278,
+      "sha256": "2e6b83f4dbed6088e797733348b5b874fc0f45608b35df47941dd3ffc9ff43e4"
+    },
+    {
+      "path": "threat_snapshots/TS6_analytics_misleading_0.json",
+      "bytes": 5177,
+      "sha256": "bef62ffadebe33fb52dd3ee328e270a76e9233784f2ba9b02b3320abdd19176f"
+    },
+    {
+      "path": "threat_snapshots/TS6_analytics_misleading_1.json",
+      "bytes": 24792,
+      "sha256": "ddb8bd1fd4a4604e17f4825da58be841b7cfe772695c3442e8d280a01563d390"
+    },
+    {
+      "path": "threat_snapshots/TS7_code_review_malicious_0.json",
+      "bytes": 8920,
+      "sha256": "1f915468fa11799c2693b4b144765ca3b384e7611a8400c8ce8132fdb8e09980"
+    },
+    {
+      "path": "threat_snapshots/TS7_code_review_malicious_1.json",
+      "bytes": 8380,
+      "sha256": "797e99113a5b6c099424c9904699e30170569d7860d48a017bd6778708ca8657"
+    },
+    {
+      "path": "threat_snapshots/TS8_product_recommendation_tool_extraction_0.json",
+      "bytes": 2254,
+      "sha256": "44d373de6c88894f8d7e18aab7f24c8daf8f85e14df4d1cd194ce9c8299041a7"
+    },
+    {
+      "path": "threat_snapshots/TS8_product_recommendation_tool_extraction_1.json",
+      "bytes": 2835,
+      "sha256": "9f30fdf4989833533f38026976e42cdfad82fe606880c8aeb65d4afc2c3f1b7f"
+    },
+    {
+      "path": "threat_snapshots/TS9_email_tool_invocation_0.json",
+      "bytes": 2033,
+      "sha256": "eaa26f05c8a6be1464a7e8e05a2e95ea464953fc86e880ae618bcb4338ba77cb"
+    },
+    {
+      "path": "threat_snapshots/TS9_email_tool_invocation_1.json",
+      "bytes": 1643,
+      "sha256": "917bcb490b6f456d3146960a1b26e03813fbf216304db460987b6b8ab6e44b70"
+    },
+    {
+      "path": "tool_specs/apply_coupon.json",
+      "bytes": 831,
+      "sha256": "aaf5472e2a9cec0428acce92891de57d4ea1cb86bc1809f3072622e47f5cce51"
+    },
+    {
+      "path": "tool_specs/book_flight.json",
+      "bytes": 4935,
+      "sha256": "fc0bad2ff61d2fa8f3186151f462ddd3a2e45136d3858985935b93adf6cf4188"
+    },
+    {
+      "path": "tool_specs/book_hotel.json",
+      "bytes": 2636,
+      "sha256": "97182ff9e6345fc236327a98127bc388dffab5d1f224a5302db9ae58ca34150b"
+    },
+    {
+      "path": "tool_specs/book_tour.json",
+      "bytes": 3473,
+      "sha256": "aed15164469de89ebdd482c1520cd0f7fe9a1b7bd45d8ac4b1f8ae6fc7e52e79"
+    },
+    {
+      "path": "tool_specs/buy_product.json",
+      "bytes": 972,
+      "sha256": "c49ff1dfd38ae3a64344ecc956af5a54075d50e0d5966fc425daabf288e1190d"
+    },
+    {
+      "path": "tool_specs/buy_transit_tickets.json",
+      "bytes": 1042,
+      "sha256": "2b6d273764c23fe482a1d690c0a2031bb388bd85d1f399d905462adfa34a55d8"
+    },
+    {
+      "path": "tool_specs/calendar_list.json",
+      "bytes": 1082,
+      "sha256": "6fdd933b221ab44014f034a5d6999d8ecd86aa5fde03f20ba0f3932501d40499"
+    },
+    {
+      "path": "tool_specs/check_bus_routes.json",
+      "bytes": 923,
+      "sha256": "66ee0b0d5fc7db4389c206d19dd369b0f4f4c186fa3e3beb9ab55b8d6241f204"
+    },
+    {
+      "path": "tool_specs/check_train_connections.json",
+      "bytes": 1181,
+      "sha256": "7096c75c26c62236792c8066e2e1709a6078d16cf07a66e46e9d5083d3b694e4"
+    },
+    {
+      "path": "tool_specs/compare_prices.json",
+      "bytes": 1334,
+      "sha256": "6f137ac6d0db5a5f15a3f8ea74f42e6a6ed82c146417e6a5df76b56ea5ec4e33"
+    },
+    {
+      "path": "tool_specs/contacts_lookup.json",
+      "bytes": 1376,
+      "sha256": "bb7cf557feb262a7c4cd408da0a1e2120c8c27e423320e588b9930193cf4047c"
+    },
+    {
+      "path": "tool_specs/context_memory.json",
+      "bytes": 1306,
+      "sha256": "f0d0802fd0a281ca591d2b3ddd3eea9718d4134ae4d2bbdb9eda30644dad2059"
+    },
+    {
+      "path": "tool_specs/db_lookup.json",
+      "bytes": 1339,
+      "sha256": "d00626a47f138aca16973f65f53c5bcca70ef405bbf279f1001c6ad18efb88da"
+    },
+    {
+      "path": "tool_specs/document_retriever.json",
+      "bytes": 914,
+      "sha256": "c2504fcb4250ae31fd4f2ef4a62218314e50dc66f35959c6f82bfec864630550"
+    },
+    {
+      "path": "tool_specs/dummy_tool.json",
+      "bytes": 3595,
+      "sha256": "17abea7ccab2a9cdbc1be65d81be38f9ce59060613d3d30b9477a7e64071f0f1"
+    },
+    {
+      "path": "tool_specs/email_marketing.json",
+      "bytes": 1361,
+      "sha256": "a6f90a71fbe9809c1394b1ea125fff6ddb0f34570a85dfff72f9e2e958877884"
+    },
+    {
+      "path": "tool_specs/fetch_inbox.json",
+      "bytes": 1759,
+      "sha256": "076d7ee2256e3cd50a36c7e2bc8603260d79750d41ad8c80e1a97c4339508c39"
+    },
+    {
+      "path": "tool_specs/fetch_threads.json",
+      "bytes": 784,
+      "sha256": "23b2db70e48ff7a51dd33498214b262ba86ab8744708efce14aa9097acf8d41e"
+    },
+    {
+      "path": "tool_specs/get_current_weather.json",
+      "bytes": 1142,
+      "sha256": "57429135b950df893a77d899ad8740cf77fb01b998841f767f51fc1dc6b3f97c"
+    },
+    {
+      "path": "tool_specs/get_weather_alerts.json",
+      "bytes": 1269,
+      "sha256": "318efab7bdf2980918c6a8d870ca7013a3b4af0ce0ec26245847345284b6eff3"
+    },
+    {
+      "path": "tool_specs/get_weather_forecast.json",
+      "bytes": 1248,
+      "sha256": "72d6f950a01ee8f071e8f8d89a28c793cbb95f53f84a2133c3410c9ec7c6539a"
+    },
+    {
+      "path": "tool_specs/location_context_memory.json",
+      "bytes": 1425,
+      "sha256": "8d748302d2e8c824740de5baf30e9c7e6611a408c8cca63fec68360f29203060"
+    },
+    {
+      "path": "tool_specs/note_memory.json",
+      "bytes": 1040,
+      "sha256": "c17625da16afd4698994badcd23b478ba4f2318e46243b1dbed3efaf25f2789a"
+    },
+    {
+      "path": "tool_specs/patient_record_retriever.json",
+      "bytes": 1373,
+      "sha256": "95b4611e602783a2b2a93837e926a1608b4323b98c8141f080b86fb0bfd36b60"
+    },
+    {
+      "path": "tool_specs/price_compare.json",
+      "bytes": 851,
+      "sha256": "de1a2673fbb9465ff0ff3f1c371ded52f4c1b885b121888b8de86753fad26be8"
+    },
+    {
+      "path": "tool_specs/schedule_meeting.json",
+      "bytes": 3376,
+      "sha256": "08f7f528250bc8e25432adcb14f40f82b49629ac29a37f7fd5025e6ccd5efeb0"
+    },
+    {
+      "path": "tool_specs/search_email.json",
+      "bytes": 1247,
+      "sha256": "e398931c41ccde54c520ab285c54f9da45c71281ab1cb68a1cace4c2d970596d"
+    },
+    {
+      "path": "tool_specs/search_flights.json",
+      "bytes": 2873,
+      "sha256": "a412b64ba52647d6463cf1aaa14fbbd84d4e1c88bafce5f72a4bd14f295148d5"
+    },
+    {
+      "path": "tool_specs/search_hotels.json",
+      "bytes": 2422,
+      "sha256": "c0c0e6fb77ecc26ac40651d87ff3af8b335e384fb1212d35a922c7b3b7503e97"
+    },
+    {
+      "path": "tool_specs/search_products.json",
+      "bytes": 1292,
+      "sha256": "3e598e9d77222d75844add146e46c7a1fb8c04952daa623a0466b6d12f558457"
+    },
+    {
+      "path": "tool_specs/search_tours.json",
+      "bytes": 3171,
+      "sha256": "75378ccda0cb56dac0f652cba1a4504ab62368b71d5cc8681934b5351b765d69"
+    },
+    {
+      "path": "tool_specs/send_chat_message.json",
+      "bytes": 1061,
+      "sha256": "262242ea8ec003733f61a6430e553e65c971893b7dcd227986039807a8c062c0"
+    },
+    {
+      "path": "tool_specs/send_email.json",
+      "bytes": 2302,
+      "sha256": "fad52edcecc0e0921086cc92066eba715edd9eb187c526888e2c3489cafe1935"
+    },
+    {
+      "path": "tool_specs/set_thermostat.json",
+      "bytes": 998,
+      "sha256": "0be01199530a5aa607269be0f773ae843545d2ae5307396a1842f74ae619fd25"
+    },
+    {
+      "path": "tool_specs/task_memory.json",
+      "bytes": 1140,
+      "sha256": "d95f3c7ac112e6abfb66568b48c29bc269c447aa78119439a3b95540313b1f7e"
+    },
+    {
+      "path": "tool_specs/toggle_lights.json",
+      "bytes": 1044,
+      "sha256": "8573de1a1a89eaaf0a10211834c5cc8f090a1a1a05707cd1e93dcc65e688e633"
+    },
+    {
+      "path": "tool_specs/web_search.json",
+      "bytes": 485,
+      "sha256": "5da9746b421f311b71716ac26fd8bf95cc6ccf7b0b9cd18cd28695b9ef41a289"
+    }
+  ]
+}

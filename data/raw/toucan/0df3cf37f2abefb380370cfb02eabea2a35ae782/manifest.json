@@ -1,0 +1,30 @@
+{
+  "dataset": "toucan",
+  "source": "https://huggingface.co/datasets/Agent-Ark/Toucan-1.5M (README + first shard of each teacher subset: Kimi-K2 00000-of-00040, OSS 00000-of-00047, Qwen3 00000-of-00044)",
+  "license": "Apache-2.0 (dataset card)",
+  "notes": "Sample of 3 of 131 trajectory shards (~450 MB of 21.8 GB); SFT folder not downloaded",
+  "revision": "0df3cf37f2abefb380370cfb02eabea2a35ae782",
+  "downloaded_at": "2026-10-21T11:00:57+00:00",
+  "files": [
+    {
+      "path": "Kimi-K2/train-00000-of-00040.parquet",
+      "bytes": 149328162,
+      "sha256": "f5204ef699c468ebba526db58f38d37253c471a6b8f6591866613d9bbf3af332"
+    },
+    {
+      "path": "OSS/train-00000-of-00047.parquet",
+      "bytes": 154444700,
+      "sha256": "82b638601253f4ae0ad796b5366c1cf0acb144ad6e3171918a90e687eb524b01"
+    },
+    {
+      "path": "Qwen3/train-00000-of-00044.parquet",
+      "bytes": 129783116,
+      "sha256": "1a1598c2f0548b25d7048ace5f6e64ad60e080b5a5cbf363eddb861fc263f7d8"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8380,
+      "sha256": "59eb287d06206f09c3a4f27d8b77b11600b54d81daa328b5ce2d1e15485efb13"
+    }
+  ]
+}

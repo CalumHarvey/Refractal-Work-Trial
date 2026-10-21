@@ -1,0 +1,65 @@
+{
+  "dataset": "injecagent",
+  "source": "https://github.com/uiuc-kang-lab/InjecAgent (README, LICENCE and folder data; no code copied)",
+  "license": "MIT (LICENCE file)",
+  "not_downloaded": "model outputs results.zip (36 MB, Google Drive id 1OptmQBPQ4uLRUNv95ak2fRJF7BN4xOws, linked from the README)",
+  "revision": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07",
+  "downloaded_at": "2026-10-20T17:01:56+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4701,
+      "sha256": "48fefba69837d571825823938b599d59d2656379b4ef386152cf5ceda5e4ac18"
+    },
+    {
+      "path": "LICENCE",
+      "bytes": 1086,
+      "sha256": "2889829a6a4c3b0b340af05612d2f4fc5424693bf504a49a82dbb6e9fa73e7b9"
+    },
+    {
+      "path": "data/attacker_cases_dh.jsonl",
+      "bytes": 10967,
+      "sha256": "50892300ce734d8d4e380ecf4f3309744b7d845acbe90108250b1f1e9c502e35"
+    },
+    {
+      "path": "data/attacker_cases_ds.jsonl",
+      "bytes": 13241,
+      "sha256": "ca791c56bd88d61f688b30adc138e08300c7487c391d7a8d5dac90221965c61b"
+    },
+    {
+      "path": "data/attacker_simulated_responses.json",
+      "bytes": 1361928,
+      "sha256": "5510060ea40ac9624784b816cd1b9f99e12f23162ecfd35bbf50be787d2107cd"
+    },
+    {
+      "path": "data/test_cases_dh_base.json",
+      "bytes": 680569,
+      "sha256": "4dcc0540ad86efbd1d0658b3b0eb50bb19fd89ba3853a343235b47c281c72c5d"
+    },
+    {
+      "path": "data/test_cases_dh_enhanced.json",
+      "bytes": 729529,
+      "sha256": "b2e8ebd8a8d661ed8c8527396438f6583fc302880971fe0b5020295ce9ae7728"
+    },
+    {
+      "path": "data/test_cases_ds_base.json",
+      "bytes": 774075,
+      "sha256": "7959777711834b23e8cca2f89717a8fd6ca92ac3a0a915e38fa563a2cf9cf8bd"
+    },
+    {
+      "path": "data/test_cases_ds_enhanced.json",
+      "bytes": 826299,
+      "sha256": "bbceaf8cb4a8397b5081120d879808261756cc4b6f3200f4f887288616ef8530"
+    },
+    {
+      "path": "data/tools.json",
+      "bytes": 553143,
+      "sha256": "bb45ffcf226e037381e8b62dfad8eb503fcba58df480130f2b65f24ad61fd5f8"
+    },
+    {
+      "path": "data/user_cases.jsonl",
+      "bytes": 10941,
+      "sha256": "6b681f0fd26597d98c0f853c1cebc001b5507460c51baf45db2f628237049413"
+    }
+  ]
+}

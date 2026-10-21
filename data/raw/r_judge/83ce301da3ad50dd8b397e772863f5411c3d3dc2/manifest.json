@@ -1,0 +1,147 @@
+{
+  "dataset": "r_judge",
+  "source": "https://github.com/Lordog/R-Judge (folder data)",
+  "revision": "83ce301da3ad50dd8b397e772863f5411c3d3dc2",
+  "license": "UNSTATED: no LICENSE file in repo",
+  "downloaded_at": "2026-10-20T13:05:31+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 8296,
+      "sha256": "9e2987dc445117db52c3c67181790278f8f16dbcd494e61c5f6554d87e6ad56c"
+    },
+    {
+      "path": "data/Application/chatbot.json",
+      "bytes": 14685,
+      "sha256": "a277f02f2e5198f51fe62f30d55faa20f9954c4dd9457a80e74e362b2615c828"
+    },
+    {
+      "path": "data/Application/dh_app.json",
+      "bytes": 168222,
+      "sha256": "2bcfdebb27b54d924bcadba589c18a0e0f05e46168a52c80ea5b765ddab67b8a"
+    },
+    {
+      "path": "data/Application/ds_app.json",
+      "bytes": 489902,
+      "sha256": "1202d4c3bda24087a7d512ea454c0e2c6bdaaae2d1441e9d7a240e24228d2718"
+    },
+    {
+      "path": "data/Application/mail.json",
+      "bytes": 15970,
+      "sha256": "c120ae368bb8e82de09dc23d0c41c53c248d764c9a75011f50643d055c0500df"
+    },
+    {
+      "path": "data/Application/medical.json",
+      "bytes": 15624,
+      "sha256": "91d7a15261a72d814ac05535fdb07cb1b88efaf04ee9d53edc8f5b82247411f3"
+    },
+    {
+      "path": "data/Application/phone.json",
+      "bytes": 30385,
+      "sha256": "d239884eaf85a381bb6b765bbb6c347aa10da820118ad00866bbf3a2b6bb7739"
+    },
+    {
+      "path": "data/Application/productivity.json",
+      "bytes": 25742,
+      "sha256": "3910aa8c889988220b3b8fe288596246ff3820696299d7fb32e9c79333b40725"
+    },
+    {
+      "path": "data/Application/socialapp.json",
+      "bytes": 20711,
+      "sha256": "3290b2063f4e0cb97ce0810aac4a5dfb973a6bd3b9585ed41ebabc397cc90d53"
+    },
+    {
+      "path": "data/Finance/bitcoin.json",
+      "bytes": 23581,
+      "sha256": "d6a0d68a4be48c7ab533b1a152ee8e11c2b60e1a56833395e24ba6c0b2a47256"
+    },
+    {
+      "path": "data/Finance/dh_finance.json",
+      "bytes": 118322,
+      "sha256": "079905bf147407fa371ae0fc7e4e2bbe692245cc0010f6a58c315749e5ca5feb"
+    },
+    {
+      "path": "data/Finance/ds_finance.json",
+      "bytes": 219996,
+      "sha256": "e5666d4c4198a0fb5946cff8e0d22ad6b9d5aa8fb45334c4c2c03346d0321ec7"
+    },
+    {
+      "path": "data/Finance/moneymanagement.json",
+      "bytes": 13161,
+      "sha256": "916d887854f3b2c59c30de9bff28a6d2a427229dbc9e75e75c1a8fcd48168ecd"
+    },
+    {
+      "path": "data/Finance/webshop.json",
+      "bytes": 16867,
+      "sha256": "7d253e884b5a751ad451697812c3bd2b634903f3749d47b430756608eaedb9de"
+    },
+    {
+      "path": "data/IoT/household.json",
+      "bytes": 74612,
+      "sha256": "71955278048eeab0df8fef2c93676c2b83045cc20f921f0667a6d3852dbe812b"
+    },
+    {
+      "path": "data/IoT/phone_iot.json",
+      "bytes": 11102,
+      "sha256": "f91acdb383fe5fac9578e16066380ba61f02e74433be41ecba2adeea3f7a080f"
+    },
+    {
+      "path": "data/IoT/trafficdispatch.json",
+      "bytes": 46019,
+      "sha256": "8646b06f82de8c767b37edc6809b1a501d0511a9270bd0e4c6b24da884e962e8"
+    },
+    {
+      "path": "data/Program/code_agentmonitor.json",
+      "bytes": 27315,
+      "sha256": "4f94c281513027ca89c229c96e891a15f9f91ddb5f8c5da44f02d4aef8423905"
+    },
+    {
+      "path": "data/Program/dh_program.json",
+      "bytes": 31396,
+      "sha256": "cf154e30bb02af3869d9b1adbd3b7b8e1485d5ff6f3984f9df715be94909bb10"
+    },
+    {
+      "path": "data/Program/ds_program.json",
+      "bytes": 220432,
+      "sha256": "5aa839045b1c8b7ec8b6665e7eb3304babb78f075237ec73b3436a822700a93d"
+    },
+    {
+      "path": "data/Program/phone_program.json",
+      "bytes": 6931,
+      "sha256": "7d6a4ddd937cedd480a13c9255b5d0ca8c83fbdc64c89cdc3ca6ed07c8ce0211"
+    },
+    {
+      "path": "data/Program/software.json",
+      "bytes": 20395,
+      "sha256": "aded5fe0ac2b36acc539f8c3e23959137e6e5b0afc86d00c4e5be1936c60fc0d"
+    },
+    {
+      "path": "data/Program/terminal.json",
+      "bytes": 51450,
+      "sha256": "b6e2bc57baaeb324953dfb9d148384ae0114533a12af9886b3a2d1c09030a7d4"
+    },
+    {
+      "path": "data/Web/dh_web.json",
+      "bytes": 9219,
+      "sha256": "79d12e8fb97b4e636a4a076ef5e32a0d5b017b69e36e8a11f171ceb9688197e6"
+    },
+    {
+      "path": "data/Web/ds_web.json",
+      "bytes": 23738,
+      "sha256": "b4f93444dac15f39ea3a60b42064bf23ffd64975d5b6a0281ba5e6452fc38a80"
+    },
+    {
+      "path": "data/Web/webbrowser.json",
+      "bytes": 35959,
+      "sha256": "3697695be00fc7bc337f91264330148d1a87e0e3130576448af618e439311c14"
+    },
+    {
+      "path": "data/Web/websearch.json",
+      "bytes": 37220,
+      "sha256": "07a834324a72cae00485393988f69bd4ec2055264d572b3492952b1a135f7f33"
+    }
+  ],
+  "notes": [
+    "data/Program/security.json could not be read on this machine (blocked, likely by antivirus); not copied"
+  ]
+}

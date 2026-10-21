@@ -1,0 +1,19 @@
+{
+  "dataset": "toolace",
+  "source": "https://huggingface.co/datasets/Team-ACE/ToolACE (all files)",
+  "license": "Apache-2.0 (dataset card)",
+  "revision": "6bda777c88d21e5a204703c1ee45597a8fa4f734",
+  "downloaded_at": "2026-10-21T11:00:57+00:00",
+  "files": [
+    {
+      "path": "data.json",
+      "bytes": 37154735,
+      "sha256": "ba12c083fca7e8da48c67ad5b895e495447da7c66e39a2e19742c082e6cb537e"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1873,
+      "sha256": "4e82e47712cfdc0bc86b3b0c6b03f5f2f00a1ca54ccfa696276833743c85e460"
+    }
+  ]
+}
