@@ -5,4 +5,4 @@ is pointed at a temporary folder.
 
 | File | Covers |
 | --- | --- |
-| `test_generate.py` | Injection checks (including JSON-escaped injections and seed values that must be rewritten), the judge keep rule, deterministic group planning, the LLM cache, fallbacks on overload and quota, the data guard for evaluation-only datasets, PROACT's rule boundaries and judge agreement (independent samples count, fallback duplicates do not) |
+| `test_generate.py` | Injection checks (including JSON-escaped injections and seed values that must be rewritten), the judge keep rule, deterministic group planning and pairing each attack with a context whose tools can carry it out, the LLM cache, fallbacks on overload and quota, the data guard for evaluation-only datasets, PROACT's rule boundaries and judge agreement (independent samples count, fallback duplicates do not) |

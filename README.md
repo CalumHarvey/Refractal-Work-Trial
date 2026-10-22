@@ -5,6 +5,8 @@ allowed or blocked. Real security datasets, relabelled real data (PROACT steps) 
 (generated injections) are converted into one record format, labelled against the Microsoft AI Red Team
 taxonomy of agentic failure modes (v2.0), split without leakage, and delivered to Jev in its own formats.
 
+A plain-language walkthrough of the MVP and the full framework, with worked examples of generated data, is in [SUMMARY.md](SUMMARY.md).
+
 ## Structure
 
 **What is built (the MVP):**

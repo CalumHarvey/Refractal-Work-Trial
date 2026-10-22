@@ -21,8 +21,9 @@ report's counts (`splits.<split>.by_kind`).
 | --- | --- | --- | --- |
 | `real` | Converted directly from a downloaded dataset | `raw/` | TOUCAN, InjecAgent, ATBench runs |
 | `relabelled_real` | Real content, new labels: a rule or model only decides where each label goes | `derived/` | PROACT steps from ATBench runs |
-| `synthetic` | Content a model wrote (on top of real seeds) | `generated/` | Generated injection groups | `ingest/run.py --status` and
-`ingest/build.py --status` say what is out of date. Never edit files by hand.
+| `synthetic` | Content a model wrote (on top of real seeds) | `generated/` | Generated injection groups |
+
+`ingest/run.py --status` and `ingest/build.py --status` say what is out of date. Never edit files by hand.
 
 | Folder | What it holds | Written by | Safe to delete? |
 | --- | --- | --- | --- |
@@ -42,7 +43,7 @@ report's counts (`splits.<split>.by_kind`).
 | --- | --- |
 | `derived/atbench_steps/<run>/` | A PROACT run (relabelled real). `boundaries.jsonl` has the first unsafe action of each ATBench run (from rules or agreeing judges). `human_check.csv` / `human_check_transcripts.md` are for the reviewer; `human.jsonl` holds the imported human decisions. Converted by `ingest/run.py atbench_steps`. |
 | `generated/libraries/<side>/` | Seed libraries. `contexts.jsonl` holds real TOUCAN histories; `attacks.jsonl` holds InjecAgent attacker instructions and LLMail emails. The `train` side feeds training data; the `diagnostic` side (held-out seeds) feeds the Tier 3 diagnostic split. |
-| `generated/gen_inject/<run>/` | A generation run (synthetic). `groups.jsonl` has every generated group, kept or rejected with reasons. `audit_*.csv` / `audit_groups.md` are review sheets; `audit.jsonl` holds the imported audit answers. Converted by `ingest/run.py gen_inject`. |
+| `generated/gen_inject/<run>/` | A generation run (synthetic). `groups.jsonl` has every generated group, kept or rejected with reasons. `review_*.csv` / `review_groups.md` are review sheets; `review.jsonl` holds the imported review answers. Converted by `ingest/run.py gen_inject`. |
 | `generated/archive/` | Old runs kept for reference and never converted (e.g. the first mixed-model smoke run). |
 
 Each run folder has a `manifest.json`: the models and prompt versions used, counts, the libraries or raw snapshot it came from, and a `revision` that changes whenever the run's content changes. When a dataset has several runs, `pins` in `config/generation.yaml` chooses which one is converted.

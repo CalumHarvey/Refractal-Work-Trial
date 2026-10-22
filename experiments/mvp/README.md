@@ -21,7 +21,7 @@ branches only; D = B without LLMail-seeded records. Label: ALLOW = 0, BLOCK or R
 | 1 | `atbench_steps_test` | ATBench test runs unrolled by PROACT: a second licensed maker |
 | 1 | `redcode_heldout_categories` | RedCode risk categories never seen in training (shell / code execution) |
 | 1 | `benign_heldout` | Held-out TOUCAN / ToolACE / When2Call ALLOW: over-defence |
-| 2 | `tier2_toolsafe_*`, `tier2_mcptox_*` | Unlicensed, internal only, never trained on or sent to Gemini |
+| 2 | `tier2_toolsafe_*`, `tier2_mcptox_*` | Unlicensed, internal only, never trained on or sent to Gemini. R-Judge is labelled per run, not per step, so it is not scored yet |
 | 3 | `diagnostic_generated` | Generated from held-out seeds; never a headline number |
 
 **Baselines:** a tool-name-only probe (the shortcut) per arm, scored on validation; optionally a
