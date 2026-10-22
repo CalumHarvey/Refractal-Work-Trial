@@ -5,10 +5,12 @@ versions that produced it are recorded in its manifest.json (and in every record
 path. A run is written to `<dataset>.tmp/` and swapped in only when complete, so a failed run
 leaves the previous output untouched.
 """
+import errno
 import hashlib
 import json
 import os
 import shutil
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +34,62 @@ def dumps(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+# Windows reports a file that a sync client (OneDrive) is holding as EINVAL / EACCES, or as winerror
+# 5 / 32 / 33 (access denied, sharing or lock violation). These clear within seconds, so file reads and
+# folder swaps are retried instead of failing a whole run.
+_TRANSIENT_ERRNO = {errno.EINVAL, errno.EACCES}
+_TRANSIENT_WINERROR = {5, 32, 33}
+RETRY_DELAYS = (0.5, 1, 2, 4, 8)
+
+
+def is_transient(exc: OSError) -> bool:
+    """Say whether an OS error looks like a brief lock by another process (e.g. a sync client).
+
+    Args:
+        exc: The error.
+
+    Returns:
+        True for EINVAL / EACCES or Windows access-denied, sharing and lock violations.
+    """
+    return exc.errno in _TRANSIENT_ERRNO or getattr(exc, "winerror", None) in _TRANSIENT_WINERROR
+
+
+def retry_io(fn, *args, **kwargs):
+    """Call a file operation, retrying while the file is briefly locked.
+
+    Args:
+        fn: The operation, e.g. `os.replace` or `Path.read_bytes`.
+        *args: Its positional arguments.
+        **kwargs: Its keyword arguments.
+
+    Returns:
+        Whatever `fn` returns.
+
+    Raises:
+        OSError: The last error, if it is not transient or persists after every retry (about 15 s).
+    """
+    for delay in RETRY_DELAYS:
+        try:
+            return fn(*args, **kwargs)
+        except OSError as exc:
+            if not is_transient(exc):
+                raise
+            time.sleep(delay)
+    return fn(*args, **kwargs)
+
+
+def read_bytes(path: Path) -> bytes:
+    """Read a whole file, retrying while it is briefly locked.
+
+    Args:
+        path: The file.
+
+    Returns:
+        Its bytes.
+    """
+    return retry_io(Path(path).read_bytes)
+
+
 def read_jsonl(path: Path) -> list[dict]:
     """Read a JSONL file (blank lines skipped).
 
@@ -43,8 +101,8 @@ def read_jsonl(path: Path) -> list[dict]:
     """
     if not path.exists():
         return []
-    with open(path, encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    # split on "\n" only: str.splitlines would also split on U+2028 inside JSON strings
+    return [json.loads(line) for line in read_bytes(path).decode("utf-8").split("\n") if line.strip()]
 
 
 def code_fingerprint(exclude: tuple[str, ...] = ("assembly", "build.py", "tests")) -> str:
@@ -98,8 +156,8 @@ def swap_in(staging: Path, final: Path) -> None:
     if previous.exists():
         shutil.rmtree(previous)
     if final.exists():
-        os.replace(final, previous)
-    os.replace(staging, final)
+        retry_io(os.replace, final, previous)
+    retry_io(os.replace, staging, final)
     if previous.exists():
         shutil.rmtree(previous)
 
@@ -132,7 +190,7 @@ class Output:
             if self.final.exists():
                 shutil.rmtree(previous)
             else:
-                os.replace(previous, self.final)  # an interrupted swap: put the last good output back
+                retry_io(os.replace, previous, self.final)  # an interrupted swap: put the last good output back
         if self.dir.exists():
             shutil.rmtree(self.dir)
         (self.dir / "samples").mkdir(parents=True)

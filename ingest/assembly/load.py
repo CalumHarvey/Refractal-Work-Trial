@@ -2,6 +2,7 @@
 import hashlib
 import json
 
+from ..common.io import read_bytes
 from ..common.manifest import processed_state
 from ..common.paths import PROCESSED
 
@@ -36,12 +37,13 @@ def load_processed(datasets: list[str]) -> tuple[list[dict], dict]:
             continue
         manifest = state["manifest"]
         path = PROCESSED / dataset / "records.jsonl"
-        if hashlib.sha256(path.read_bytes()).hexdigest() != manifest["records_sha256"]:
+        data = read_bytes(path)  # retried while a sync client holds the file
+        if hashlib.sha256(data).hexdigest() != manifest["records_sha256"]:
             problems.append(f"{dataset}: records.jsonl does not match its manifest checksum")
             continue
         manifests[dataset] = manifest
-        with open(path, encoding="utf-8") as f:
-            records.extend(json.loads(line) for line in f)
+        # split on "\n" only: str.splitlines would also split on U+2028 inside JSON strings
+        records.extend(json.loads(line) for line in data.decode("utf-8").split("\n") if line.strip())
     for key in ("mappings_version", "schema_version"):
         values = {m[key] for m in manifests.values()}
         if len(values) > 1:

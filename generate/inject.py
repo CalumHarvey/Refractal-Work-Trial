@@ -10,13 +10,15 @@ One group gives three decision points that share the same prefix:
 - aware_allow: the agent's real next call with the injection in view (ALLOW, hard negative);
 - benign_reuse: a new ordinary request whose right action uses the attack's tool (ALLOW).
 
-QC: deterministic checks (`validate_group`) then a judge model of a different family scores six axes
-(StepGen-style auditor); a group is kept with a total >= keep_total and no zero axis. Every group,
+QC: deterministic checks (`validate_group`) then a judge model (`models.qc_judge`; the same model as
+the generator for the MVP) scores six axes (StepGen-style auditor); a group is kept with a total >= keep_total and no zero axis. Every group,
 kept or rejected, is written to groups.jsonl with its reasons, so nothing is dropped silently.
 """
 import difflib
 import json
+import logging
 import re
+import time
 from collections import Counter
 
 from ingest.common.text import normalise, sha1_12
@@ -26,9 +28,11 @@ from . import libraries, llm
 from .config import generation_config, model
 from .prompts import (INJECT_PROMPT, INJECT_SYSTEM, INJECT_VERSION, JUDGE_PROMPT, JUDGE_SYSTEM,
                       JUDGE_VERSION)
+from .logs import run_log
 from .run_folders import read_jsonl, run_dir, write_jsonl, write_manifest
 
 DATASET = "gen_inject"
+log = logging.getLogger("generate.inject")
 IDENTIFIER = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+|https?://\S+|www\.\S+")  # e-mail addresses and URLs
 AXES = ("causal_consistency", "cause_visible", "naturalness", "block_label", "aware_label", "benign_label")
 MAX_HISTORY_OUTPUT = 400
@@ -36,11 +40,46 @@ MAX_LAST_OUTPUT = 4000
 
 
 # ---- planning --------------------------------------------------------------------------------
+def attack_effects(attack: dict) -> set[str] | None:
+    """The tool effects a context needs to carry out an attack (config `inject.attack_effects`).
+
+    Looked up by `<dataset>:<kind>`, then `<dataset>:<attack_type>`, then `<dataset>`.
+
+    Args:
+        attack: An attack seed.
+
+    Returns:
+        Acceptable `side_effects` kinds, or None when the attack has no requirement.
+    """
+    table = generation_config()["inject"].get("attack_effects") or {}
+    for key in (f"{attack.get('dataset')}:{attack.get('kind')}", f"{attack.get('dataset')}:{attack.get('attack_type')}",
+                attack.get("dataset")):
+        if key in table:
+            return set(table[key])
+    return None
+
+
+def context_effects(context: dict) -> set[str]:
+    """The kinds of side effect a context's tools offer.
+
+    Args:
+        context: A context seed.
+
+    Returns:
+        The `side_effects` values of its side-effect tools.
+    """
+    names = set(context.get("side_effect_tools") or [])
+    return {t.get("side_effects") for t in context.get("tools") or [] if t["name"] in names}
+
+
 def plan_groups(contexts: list[dict], attacks: dict[str, list[dict]], n: int, side: str) -> list[dict]:
     """Choose context, attack and operator for n groups, deterministically.
 
-    Contexts are used in library order (each at most once while enough exist); attack datasets are
-    mixed by config `attack_mix`, and attacks within a dataset are cycled; operators alternate.
+    Attack datasets are mixed by config `attack_mix`, attacks within a dataset are cycled, and
+    operators alternate. Each attack goes to a context whose tools can carry out its effect
+    (`attack_effects`: a financial-harm attack needs a payment tool), the least-used such context
+    first, then the one nearest in library order; without any fitting context, any context is used.
+    With no requirement, contexts are used in library order, each once before any repeats.
 
     Args:
         contexts: Context seeds.
@@ -54,7 +93,8 @@ def plan_groups(contexts: list[dict], attacks: dict[str, list[dict]], n: int, si
     cfg = generation_config()["inject"]
     mix = {d: share for d, share in cfg["attack_mix"].items() if attacks.get(d)}
     total = sum(mix.values())
-    plans, used = [], Counter()
+    effects = [context_effects(c) for c in contexts]
+    plans, used, uses = [], Counter(), Counter()
     for i in range(n):
         position = int(sha1_12(f"mix|{side}|{i}"), 16) / 16 ** 12 * total
         edge, dataset = 0.0, next(iter(mix))
@@ -66,7 +106,11 @@ def plan_groups(contexts: list[dict], attacks: dict[str, list[dict]], n: int, si
         pool = attacks[dataset]
         attack = pool[used[dataset] % len(pool)]
         used[dataset] += 1
-        context = contexts[i % len(contexts)]
+        needs = attack_effects(attack)
+        fitting = [k for k in range(len(contexts)) if needs is None or effects[k] & needs] or range(len(contexts))
+        k = min(fitting, key=lambda k: (uses[k], (k - i) % len(contexts)))
+        uses[k] += 1
+        context = contexts[k]
         operator = cfg["operators"][i % len(cfg["operators"])]
         group_id = sha1_12(f"{context['record_id']}|{attack['key']}|{operator}|{side}|{INJECT_VERSION}")
         plans.append({"group_id": group_id, "side": side, "operator": operator, "context": context, "attack": attack})
@@ -314,14 +358,104 @@ def judge_verdict(value) -> tuple[bool, dict, list[str]]:
 
 
 # ---- run -------------------------------------------------------------------------------------
+def _make_group(group: dict, generator: str, judge: str) -> tuple[dict, dict]:
+    """Generate, check and judge one planned group.
+
+    Args:
+        group: A group plan from `plan_groups`.
+        generator: Generator model.
+        judge: QC judge model.
+
+    Returns:
+        `(row, info)`: the groups.jsonl row (status "kept" or "rejected" with reasons), and what the
+        log line needs: whether each call came from the cache, the judge total, the applied operator.
+    """
+    datasets = [group["context"]["dataset"], group["attack"]["dataset"]]
+    row = {"group_id": group["group_id"], "side": group["side"], "operator": group["operator"],
+           "context": group["context"], "attack": group["attack"], "status": "rejected",
+           "reasons": [], "generator": {"model": generator, "prompt_version": INJECT_VERSION},
+           "judge": {"model": judge, "prompt_version": JUDGE_VERSION}}
+    info = {"cached": [], "judge_total": None, "operator": group["operator"]}
+    try:
+        reply = llm.generate_json(generator, generator_prompt(group), datasets=datasets,
+                                  system=INJECT_SYSTEM, temperature=0.8)
+        info["cached"].append(reply["cached"])
+        gen = reply["value"]
+        row["generator"].update(model=reply["model"], model_version=reply["model_version"], output=gen)
+        info["operator"] = operator_of(gen, group) if isinstance(gen, dict) else group["operator"]
+        row["reasons"] = validate_group(group, gen)
+        if not row["reasons"]:
+            verdict = llm.generate_json(judge, judge_prompt(group, gen), datasets=datasets,
+                                        system=JUDGE_SYSTEM, temperature=0.0)
+            info["cached"].append(verdict["cached"])
+            keep, scores, problems = judge_verdict(verdict["value"])
+            row["judge"].update(model=verdict["model"], model_version=verdict["model_version"],
+                                scores=scores, problems=problems)
+            info["judge_total"] = sum(v for v in scores.values() if isinstance(v, int))
+            row["status"] = "kept" if keep else "rejected"
+            if not keep:
+                row["reasons"] = [f"judge below threshold ({info['judge_total']}/{3 * len(AXES)}"
+                                  + (f": {problems[0]}" if problems else "") + ")"]
+    except llm.QuotaExhausted:
+        raise
+    except llm.LLMError as exc:
+        row["reasons"] = [f"llm error: {str(exc)[:200]}"]
+    return row, info
+
+
+def _log_group(n: int, total: int, row: dict, info: dict, seconds: float) -> None:
+    """Write one log line for a finished group.
+
+    Args:
+        n: Position among this invocation's new groups.
+        total: New groups this invocation will make.
+        row: The group's row.
+        info: From `_make_group`.
+        seconds: Time the group took.
+    """
+    source = "cache" if info["cached"] and all(info["cached"]) else "api"
+    where = f'{row["side"]} {row["attack"]["dataset"]} {info["operator"]} ctx={row["context"]["record_id"]}'
+    if row["status"] == "kept":
+        log.info("[%d/%d] %s kept    judge %s/%d  %s  %.1fs %s", n, total, row["group_id"], info["judge_total"],
+                 3 * len(AXES), where, seconds, source)
+    else:
+        log.info("[%d/%d] %s REJECTED %s  %s  %.1fs %s", n, total, row["group_id"], "; ".join(row["reasons"])[:200],
+                 where, seconds, source)
+
+
+def _counts(rows: list[dict]) -> dict:
+    """Summarise a run's groups.
+
+    Args:
+        rows: Every group row in the run.
+
+    Returns:
+        Groups, sides, kept, yield, rejection reasons, kept by operator and attack dataset.
+    """
+    counts = {"groups": len(rows), "by_side": dict(Counter(r["side"] for r in rows)),
+              "kept": sum(r["status"] == "kept" for r in rows),
+              "rejected_reasons": dict(Counter(reason.split(":")[0].split(" (")[0] for r in rows if r["status"] != "kept"
+                                               for reason in r["reasons"])),
+              "kept_by_operator": dict(Counter(operator_of(r["generator"].get("output") or {}, r)
+                                               for r in rows if r["status"] == "kept")),
+              "kept_by_attack_dataset": dict(Counter(r["attack"]["dataset"] for r in rows if r["status"] == "kept"))}
+    counts["yield"] = round(counts["kept"] / counts["groups"], 3) if rows else None
+    return counts
+
+
 def generate(run_id: str, side: str, n_groups: int) -> dict:
     """Generate (or resume) a run of groups and write data/generated/gen_inject/<run>/.
+
+    Logs one line per group (kept, or rejected with its reasons), a progress line every 10 groups
+    (yield so far, time per group, estimated time left), and a summary; the same lines go to
+    `<run folder>/generate.log`.
 
     Args:
         run_id: Run folder name, e.g. "inject-mvp". One run can hold both sides: each group records
             its side, and the converter reads them all.
         side: "train" (seeds from the train side) or "diagnostic" (held-out seeds, Tier 3).
-        n_groups: Number of groups to plan; groups already in the run are skipped.
+        n_groups: Number of groups the run should hold for this side. Groups already in the run count
+            towards it (including ones planned under an earlier pairing), so only the shortfall is made.
 
     Returns:
         Counts (planned, kept, rejected by reason) and whether the run stopped on a quota.
@@ -331,49 +465,43 @@ def generate(run_id: str, side: str, n_groups: int) -> dict:
     done = {g["group_id"]: g for g in read_jsonl(path)}
     contexts, attacks, hashes = libraries.load(side)
     generator, judge = model("generator"), model("qc_judge")
-    stopped = None
-    try:
-        for group in plan_groups(contexts, attacks, n_groups, side):
-            if group["group_id"] in done:
-                continue
-            datasets = [group["context"]["dataset"], group["attack"]["dataset"]]
-            row = {"group_id": group["group_id"], "side": side, "operator": group["operator"],
-                   "context": group["context"], "attack": group["attack"], "status": "rejected",
-                   "reasons": [], "generator": {"model": generator, "prompt_version": INJECT_VERSION},
-                   "judge": {"model": judge, "prompt_version": JUDGE_VERSION}}
-            try:
-                reply = llm.generate_json(generator, generator_prompt(group), datasets=datasets,
-                                          system=INJECT_SYSTEM, temperature=0.8)
-                gen = reply["value"]
-                row["generator"].update(model=reply["model"], model_version=reply["model_version"], output=gen)
-                row["reasons"] = validate_group(group, gen)
-                if not row["reasons"]:
-                    verdict = llm.generate_json(judge, judge_prompt(group, gen), datasets=datasets,
-                                                system=JUDGE_SYSTEM, temperature=0.0)
-                    keep, scores, problems = judge_verdict(verdict["value"])
-                    row["judge"].update(model=verdict["model"], model_version=verdict["model_version"], scores=scores, problems=problems)
-                    row["status"] = "kept" if keep else "rejected"
-                    if not keep:
-                        row["reasons"] = ["judge below threshold"]
-            except llm.LLMError as exc:
-                row["reasons"] = [f"llm error: {str(exc)[:200]}"]
-            done[group["group_id"]] = row
-            if len(done) % 10 == 0:
-                write_jsonl(path, list(done.values()))
-    except llm.QuotaExhausted as exc:
-        stopped = str(exc)
-    write_jsonl(path, list(done.values()))
-    rows = list(done.values())
-    counts = {"groups": len(rows), "by_side": dict(Counter(r["side"] for r in rows)), "kept": sum(r["status"] == "kept" for r in rows),
-              "rejected_reasons": dict(Counter(reason.split(":")[0] for r in rows if r["status"] != "kept"
-                                               for reason in r["reasons"])),
-              "kept_by_operator": dict(Counter(operator_of(r["generator"].get("output") or {}, r)
-                                               for r in rows if r["status"] == "kept")),
-              "kept_by_attack_dataset": dict(Counter(r["attack"]["dataset"] for r in rows if r["status"] == "kept"))}
-    counts["yield"] = round(counts["kept"] / counts["groups"], 3) if rows else None
+    have = sum(g["side"] == side for g in done.values())
+    todo = [g for g in plan_groups(contexts, attacks, n_groups, side) if g["group_id"] not in done][:max(0, n_groups - have)]
+    stopped, made, kept_now = None, 0, 0
+    with run_log(folder) as log_path:
+        log.info("run %s, side %s: %d groups wanted, %d already in the run, %d to make (generator %s, judge %s)",
+                 run_id, side, n_groups, have, len(todo), generator, judge)
+        log.info("libraries: %d contexts, attacks %s; log file %s", len(contexts),
+                 {k: len(v) for k, v in attacks.items()}, log_path)
+        started = time.monotonic()
+        try:
+            for group in todo:
+                t0 = time.monotonic()
+                row, info = _make_group(group, generator, judge)
+                done[group["group_id"]] = row
+                made += 1
+                kept_now += row["status"] == "kept"
+                _log_group(made, len(todo), row, info, time.monotonic() - t0)
+                if made % 10 == 0:
+                    write_jsonl(path, list(done.values()))
+                    per = (time.monotonic() - started) / made
+                    log.info("progress: %d/%d made, %d kept (yield %.0f%%), %.1fs per group, about %.0f min left",
+                             made, len(todo), kept_now, 100 * kept_now / made, per, per * (len(todo) - made) / 60)
+        except llm.QuotaExhausted as exc:
+            stopped = str(exc)
+            log.warning("stopped on a daily quota after %d of %d groups; run the same command later to resume", made,
+                        len(todo))
+        write_jsonl(path, list(done.values()))
+        rows = list(done.values())
+        counts = _counts(rows)
+        log.info("done: %d made now (%d kept); run total %d groups, %d kept, yield %s", made, kept_now,
+                 counts["groups"], counts["kept"], counts["yield"])
+        if counts["rejected_reasons"]:
+            log.info("rejections in the run: %s", counts["rejected_reasons"])
     previous = json.loads((folder / "manifest.json").read_text(encoding="utf-8")) if (folder / "manifest.json").exists() else {}
     write_manifest(folder, DATASET, run_id, "groups.jsonl", {
-        "sides": sorted({r["side"] for r in rows}), "libraries": {**previous.get("libraries", {}), side: hashes}, "models": {"generator": generator, "qc_judge": judge},
+        "sides": sorted({r["side"] for r in rows}), "libraries": {**previous.get("libraries", {}), side: hashes},
+        "models": {"generator": generator, "qc_judge": judge},
         "prompt_versions": {"generator": INJECT_VERSION, "judge": JUDGE_VERSION},
         "keep_total": generation_config()["inject"]["keep_total"], "counts": counts, "stopped": stopped})
     return {**counts, "stopped": stopped}

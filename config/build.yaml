@@ -31,7 +31,7 @@ licences:
   r_judge:       { licence: none, include: eval_only }
   mcptox:        { licence: "none (anonymous and official repos)", include: eval_only }
   llmail_inject: { licence: MIT, include: false, seed: true }        # attack text for generation only (user decision 2026-10-20)
-  redcode:       { licence: "CC BY 4.0 (data), MIT (code)", include: true }        # downloaded 2026-10-21, not converted yet
+  redcode:       { licence: "CC BY 4.0 (data), MIT (code)", include: true }        # attribution required
   b3:            { licence: "conflict: README says MIT, LICENSE file is research-only non-commercial", include: false }   # downloaded 2026-10-21
   toucan:        { licence: Apache-2.0, include: true }
   toolace:       { licence: Apache-2.0, include: true }
@@ -67,6 +67,9 @@ sources:
   # group by question (task) and run (trajectory) as usual.
   toucan:             { role: train, group_by_fields: [servers] }
   toolace:            { role: train }
+  # RedCode: whole risk categories are held out (`group_by_fields` reads source.original_label.category),
+  # so validation / test measure unseen kinds of shell harm, not unseen wordings of seen ones.
+  redcode:            { role: train, group_by_fields: [category] }
   when2call:          { role: train, group_by_fields: [toolset] }   # BFCL reuses tool sets across paraphrased items
   r_judge:            { role: holdout }      # cleanest human labels: reserved for calibration and evaluation
   # Derived sources follow their seeds (role: derived). `kind` separates them in every report and row

@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" width="1600" height="800" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>
+<rect width="1600" height="800" fill="#ffffff"/>
+<text x="24.0" y="36.0" text-anchor="start" style="font-size:22px;fill:#111;font-weight:700;">MVP framework · stage by stage</text>
+<text x="24.0" y="58.0" text-anchor="start" style="font-size:12.5px;fill:#555;">Licensed real data → split first → convert, relabel (PROACT) and generate → build → deliver to Jev and evaluate · status as of 22 Oct 2026</text>
+<text x="24.0" y="94.0" text-anchor="start" style="font-size:12.5px;fill:#444;font-weight:700;">1  SOURCES</text>
+<line x1="24" y1="100" x2="254" y2="100" stroke="#bbb" stroke-width="1"/>
+<text x="290.0" y="94.0" text-anchor="start" style="font-size:12.5px;fill:#444;font-weight:700;">2  SPLIT FIRST</text>
+<line x1="290" y1="100" x2="510" y2="100" stroke="#bbb" stroke-width="1"/>
+<text x="546.0" y="94.0" text-anchor="start" style="font-size:12.5px;fill:#444;font-weight:700;">3  CONVERT · RELABEL · GENERATE</text>
+<line x1="546" y1="100" x2="906" y2="100" stroke="#bbb" stroke-width="1"/>
+<text x="942.0" y="94.0" text-anchor="start" style="font-size:12.5px;fill:#444;font-weight:700;">4  BUILD</text>
+<line x1="942" y1="100" x2="1182" y2="100" stroke="#bbb" stroke-width="1"/>
+<text x="1218.0" y="94.0" text-anchor="start" style="font-size:12.5px;fill:#444;font-weight:700;">5  DELIVER AND EVALUATE</text>
+<line x1="1218" y1="100" x2="1576" y2="100" stroke="#bbb" stroke-width="1"/>
+<rect x="24" y="108" width="230" height="62" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="139.0" y="129.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">ATBench</text>
+<text x="139.0" y="147.5" text-anchor="middle" style="font-size:11px;fill:#333;">Apache-2.0 · 1,000 whole runs</text>
+<rect x="24" y="180" width="230" height="62" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="139.0" y="201.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">InjecAgent</text>
+<text x="139.0" y="219.5" text-anchor="middle" style="font-size:11px;fill:#333;">MIT · 10,596 steps · injection</text>
+<rect x="24" y="252" width="230" height="76" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="139.0" y="273.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">RedCode-Exec</text>
+<text x="139.0" y="291.5" text-anchor="middle" style="font-size:11px;fill:#333;">CC BY 4.0 · 1,920 risky shell /</text>
+<text x="139.0" y="306.5" text-anchor="middle" style="font-size:11px;fill:#333;">Python steps</text>
+<rect x="24" y="338" width="230" height="80" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="139.0" y="359.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Benign: TOUCAN · ToolACE ·</text>
+<text x="139.0" y="375.5" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">When2Call</text>
+<text x="139.0" y="394.0" text-anchor="middle" style="font-size:11px;fill:#333;">6,440 · 3,000 · 6,009 steps</text>
+<rect x="24" y="428" width="230" height="76" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="139.0" y="449.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">LLMail-Inject</text>
+<text x="139.0" y="467.5" text-anchor="middle" style="font-size:11px;fill:#333;">MIT · real human attack emails, used</text>
+<text x="139.0" y="482.5" text-anchor="middle" style="font-size:11px;fill:#333;">only as seeds</text>
+<rect x="24" y="524" width="230" height="110" rx="8" fill="#fbe4e1" stroke="#a83a30" stroke-width="1.3"/>
+<text x="139.0" y="545.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Evaluation only (no licence)</text>
+<text x="139.0" y="563.5" text-anchor="middle" style="font-size:11px;fill:#333;">ToolSafe 7,182 · R-Judge 564 ·</text>
+<text x="139.0" y="578.5" text-anchor="middle" style="font-size:11px;fill:#333;">MCPTox 5,654</text>
+<text x="139.0" y="593.5" text-anchor="middle" style="font-size:11px;fill:#333;">never trained on, never seeds, never</text>
+<text x="139.0" y="608.5" text-anchor="middle" style="font-size:11px;fill:#333;">sent to Gemini</text>
+<rect x="290" y="108" width="220" height="394" rx="8" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="400.0" y="129.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Frozen split plan</text>
+<text x="400.0" y="147.5" text-anchor="middle" style="font-size:10.5px;fill:#3459a8;" font-family="Consolas, 'Courier New', monospace">data/splits/plan.json</text>
+<text x="400.0" y="162.0" text-anchor="middle" style="font-size:11px;fill:#333;">ATBench: 70% of runs train, 30%</text>
+<text x="400.0" y="177.0" text-anchor="middle" style="font-size:11px;fill:#333;">test</text>
+<text x="400.0" y="192.0" text-anchor="middle" style="font-size:11px;fill:#333;">InjecAgent grid: A×A train, A×B</text>
+<text x="400.0" y="207.0" text-anchor="middle" style="font-size:11px;fill:#333;">and B×A validation, B×B test</text>
+<text x="400.0" y="222.0" text-anchor="middle" style="font-size:11px;fill:#333;">RedCode: whole risk categories</text>
+<text x="400.0" y="237.0" text-anchor="middle" style="font-size:11px;fill:#333;">held out</text>
+<text x="400.0" y="252.0" text-anchor="middle" style="font-size:11px;fill:#333;">TOUCAN: by MCP server</text>
+<text x="400.0" y="267.0" text-anchor="middle" style="font-size:11px;fill:#333;">ToolACE, When2Call: by task and</text>
+<text x="400.0" y="282.0" text-anchor="middle" style="font-size:11px;fill:#333;">tool set</text>
+<text x="400.0" y="297.0" text-anchor="middle" style="font-size:11px;fill:#333;">LLMail: phase 1 → train seeds,</text>
+<text x="400.0" y="312.0" text-anchor="middle" style="font-size:11px;fill:#333;">phase 2 → diagnostic seeds</text>
+<text x="400.0" y="327.0" text-anchor="middle" style="font-size:11px;fill:#333;">PROACT steps and generated records</text>
+<text x="400.0" y="342.0" text-anchor="middle" style="font-size:11px;fill:#333;">follow their seeds&#x27; split</text>
+<rect x="466.0" y="99" width="36.0" height="18" rx="9" fill="#3a7d34"/>
+<text x="484.0" y="111.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">DONE</text>
+<rect x="290" y="512" width="220" height="122" rx="8" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="400.0" y="533.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Human review</text>
+<text x="400.0" y="551.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">Gate P: PROACT boundaries, ≥ 85%</text>
+<text x="400.0" y="566.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">agreement</text>
+<text x="400.0" y="580.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">Gate 1: every pilot group, ≥ 90%</text>
+<text x="400.0" y="595.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">correct</text>
+<text x="400.0" y="609.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">Gate 2: 150–200 sample, precision ≥</text>
+<text x="400.0" y="624.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">0.9</text>
+<rect x="438.4" y="503" width="63.6" height="18" rx="9" fill="#c26a00"/>
+<text x="470.2" y="515.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">NEEDS YOU</text>
+<path d="M254,139 C271.0,139 271.0,140 288,140" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M254,211 C271.0,211 271.0,211 288,211" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M254,290 C271.0,290 271.0,290 288,290" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M254,378 C271.0,378 271.0,378 288,378" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M254,466 C271.0,466 271.0,466 288,466" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<rect x="546" y="108" width="360" height="62" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="726.0" y="129.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Step-1 converters (real data)</text>
+<text x="726.0" y="147.5" text-anchor="middle" style="font-size:10.5px;fill:#3459a8;" font-family="Consolas, 'Courier New', monospace">ingest/run.py → data/processed/</text>
+<rect x="862.0" y="99" width="36.0" height="18" rx="9" fill="#3a7d34"/>
+<text x="880.0" y="111.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">DONE</text>
+<rect x="546" y="180" width="360" height="100" rx="8" fill="#efe6f7" stroke="#6b3fa0" stroke-width="1.3"/>
+<text x="726.0" y="201.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">PROACT on ATBench → relabelled real</text>
+<text x="726.0" y="219.5" text-anchor="middle" style="font-size:11px;fill:#333;">first unsafe action: a rule, else 2 of 3 Flash-Lite</text>
+<text x="726.0" y="234.5" text-anchor="middle" style="font-size:11px;fill:#333;">samples agree</text>
+<text x="726.0" y="249.5" text-anchor="middle" style="font-size:11px;fill:#333;">612 / 1,000 runs located · 98 test runs left</text>
+<rect x="845.4" y="171" width="52.6" height="18" rx="9" fill="#7a7a7a"/>
+<text x="871.7" y="183.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">WAITING</text>
+<rect x="546" y="290" width="360" height="70" rx="8" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="726.0" y="311.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Seed libraries</text>
+<text x="726.0" y="329.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">train: 541 TOUCAN contexts · 47 InjecAgent + 1,500 LLMail</text>
+<text x="726.0" y="344.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">attacks</text>
+<rect x="862.0" y="281" width="36.0" height="18" rx="9" fill="#3a7d34"/>
+<text x="880.0" y="293.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">DONE</text>
+<rect x="546" y="370" width="360" height="264" rx="8" fill="#e2ebfa" stroke="#3459a8" stroke-width="1.3"/>
+<text x="556.0" y="391.0" text-anchor="start" style="font-size:12.5px;fill:#111;font-weight:700;">Synthetic injections (gen_inject)</text>
+<rect x="729.7" y="361" width="168.3" height="18" rx="9" fill="#7a7a7a"/>
+<text x="813.9" y="373.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">PAUSED ON QUOTA: 200 / 1,000</text>
+<rect x="556" y="404" width="160" height="66" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.3"/>
+<text x="636.0" y="425.0" text-anchor="middle" style="font-size:11.5px;fill:#111;font-weight:700;">Plan</text>
+<text x="636.0" y="442.5" text-anchor="middle" style="font-size:10px;fill:#333;">attack × operator × a</text>
+<text x="636.0" y="456.5" text-anchor="middle" style="font-size:10px;fill:#333;">context whose tools fit</text>
+<rect x="736" y="404" width="160" height="66" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.3"/>
+<text x="816.0" y="425.0" text-anchor="middle" style="font-size:11.5px;fill:#111;font-weight:700;">Generator</text>
+<text x="816.0" y="442.5" text-anchor="middle" style="font-size:10px;fill:#333;">plants the attack in the</text>
+<text x="816.0" y="456.5" text-anchor="middle" style="font-size:10px;fill:#333;">last tool output</text>
+<rect x="736" y="478" width="160" height="66" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.3"/>
+<text x="816.0" y="499.0" text-anchor="middle" style="font-size:11.5px;fill:#111;font-weight:700;">Rule checks</text>
+<text x="816.0" y="516.5" text-anchor="middle" style="font-size:10px;fill:#333;">attack visible, output</text>
+<text x="816.0" y="530.5" text-anchor="middle" style="font-size:10px;fill:#333;">kept, values invented</text>
+<rect x="556" y="478" width="160" height="66" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.3"/>
+<text x="636.0" y="499.0" text-anchor="middle" style="font-size:11.5px;fill:#111;font-weight:700;">QC judge</text>
+<text x="636.0" y="516.5" text-anchor="middle" style="font-size:10px;fill:#333;">6 axes; keep at ≥ 14 / 18</text>
+<path d="M716.0,437.0 L734.0,437.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M816.0,470.0 L816.0,476.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M736.0,511.0 L718.0,511.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<text x="726.0" y="566.0" text-anchor="middle" style="font-size:11px;fill:#222;font-weight:700;">Each kept group → 3 records sharing one history:</text>
+<text x="726.0" y="583.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">BLOCK the attacker&#x27;s call · ALLOW the real next call</text>
+<text x="726.0" y="599.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">ALLOW the same tool for an ordinary request</text>
+<text x="726.0" y="621.0" text-anchor="middle" style="font-size:10px;fill:#555;font-style:italic;">first 200 groups: 65 kept (32.5%) · Gemini 3.5 Flash-Lite, cached</text>
+<path d="M510,250 C527.0,250 527.0,139 544,139" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M510,300 C527.0,300 527.0,325 544,325" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M726.0,360.0 L726.0,368.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M510,560 C527.0,560 527.0,230 544,230" fill="none" stroke="#c26a00" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+<path d="M510,600 C527.0,600 527.0,520 544,520" fill="none" stroke="#c26a00" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+<rect x="942" y="108" width="240" height="340" rx="8" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="1062.0" y="129.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Build</text>
+<text x="1062.0" y="147.5" text-anchor="middle" style="font-size:10.5px;fill:#3459a8;" font-family="Consolas, 'Courier New', monospace">ingest/build.py</text>
+<text x="1062.0" y="162.0" text-anchor="middle" style="font-size:11px;fill:#333;">licence gate</text>
+<text x="1062.0" y="177.0" text-anchor="middle" style="font-size:11px;fill:#333;">deduplicate across sources</text>
+<text x="1062.0" y="192.0" text-anchor="middle" style="font-size:11px;fill:#333;">assign splits (seeds&#x27; split for</text>
+<text x="1062.0" y="207.0" text-anchor="middle" style="font-size:11px;fill:#333;">derived records)</text>
+<text x="1062.0" y="222.0" text-anchor="middle" style="font-size:11px;fill:#333;">audits: leakage, tool-name shortcut,</text>
+<text x="1062.0" y="237.0" text-anchor="middle" style="font-size:11px;fill:#333;">shell surface</text>
+<text x="1062.0" y="252.0" text-anchor="middle" style="font-size:11px;fill:#333;">coverage by failure mode</text>
+<text x="1062.0" y="267.0" text-anchor="middle" style="font-size:11px;fill:#333;">counts by kind: real / relabelled /</text>
+<text x="1062.0" y="282.0" text-anchor="middle" style="font-size:11px;fill:#333;">synthetic</text>
+<rect x="1138.0" y="99" width="36.0" height="18" rx="9" fill="#3a7d34"/>
+<text x="1156.0" y="111.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">DONE</text>
+<path d="M906.0,139.0 L940.0,139.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M906.0,230.0 L940.0,230.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M906.0,300.0 L940.0,300.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M906,500 C923.0,500 923.0,420 940,420" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<rect x="942" y="460" width="114" height="174" rx="8" fill="#eef7f6" stroke="#24786f" stroke-width="1.3"/>
+<text x="999.0" y="481.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">data/</text>
+<text x="999.0" y="497.5" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">training</text>
+<text x="999.0" y="516.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">train</text>
+<text x="999.0" y="530.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">validation</text>
+<text x="999.0" y="545.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">test</text>
+<text x="999.0" y="559.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">diagnostic</text>
+<text x="999.0" y="574.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">rows carry</text>
+<text x="999.0" y="588.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">data_kind</text>
+<rect x="1068" y="460" width="114" height="174" rx="8" fill="#eef7f6" stroke="#24786f" stroke-width="1.3"/>
+<text x="1125.0" y="481.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">data/jev</text>
+<text x="1125.0" y="499.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">events</text>
+<text x="1125.0" y="514.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">findings</text>
+<text x="1125.0" y="528.5" text-anchor="middle" style="font-size:10.5px;fill:#333;">Jev formats</text>
+<text x="1125.0" y="543.0" text-anchor="middle" style="font-size:10.5px;fill:#333;">index stays local</text>
+<path d="M999.0,448.0 L999.0,458.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M1125.0,448.0 L1125.0,458.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<rect x="1218" y="108" width="358" height="80" rx="8" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="1397.0" y="129.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Deliver</text>
+<text x="1397.0" y="147.5" text-anchor="middle" style="font-size:11px;fill:#333;">select split × kind × dataset → placeholder Jev API (dry</text>
+<text x="1397.0" y="162.5" text-anchor="middle" style="font-size:11px;fill:#333;">run by default)</text>
+<rect x="1515.4" y="99" width="52.6" height="18" rx="9" fill="#7a7a7a"/>
+<text x="1541.7" y="111.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">WAITING</text>
+<rect x="1218" y="200" width="358" height="112" rx="8" fill="#fff3d6" stroke="#b07d12" stroke-width="1.3"/>
+<text x="1397.0" y="221.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Tier 1 · headline (real, licensed, held out)</text>
+<text x="1397.0" y="239.5" text-anchor="middle" style="font-size:11px;fill:#333;">InjecAgent B×B and its hard negatives · ATBench test steps</text>
+<text x="1397.0" y="254.5" text-anchor="middle" style="font-size:11px;fill:#333;">RedCode held-out categories · held-out benign traffic</text>
+<rect x="1218" y="324" width="358" height="80" rx="8" fill="#fff3d6" stroke="#b07d12" stroke-width="1.3"/>
+<text x="1397.0" y="345.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Tier 2 · internal transfer</text>
+<text x="1397.0" y="363.5" text-anchor="middle" style="font-size:11px;fill:#333;">ToolSafe (AgentDojo, ASB, AgentHarm) · MCPTox · R-Judge</text>
+<rect x="1218" y="416" width="358" height="66" rx="8" fill="#fff3d6" stroke="#b07d12" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="1397.0" y="437.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">Tier 3 · diagnostic (synthetic)</text>
+<text x="1397.0" y="455.5" text-anchor="middle" style="font-size:11px;fill:#333;">generated from held-out seeds; never a headline</text>
+<rect x="1515.4" y="407" width="52.6" height="18" rx="9" fill="#7a7a7a"/>
+<text x="1541.7" y="419.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">WAITING</text>
+<rect x="1218" y="494" width="358" height="140" rx="8" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="1397.0" y="515.0" text-anchor="middle" style="font-size:12.5px;fill:#111;font-weight:700;">MVP experiment</text>
+<text x="1397.0" y="533.5" text-anchor="middle" style="font-size:11px;fill:#333;">arms A0 real · A + PROACT · B + synthetic · C synthetic</text>
+<text x="1397.0" y="548.5" text-anchor="middle" style="font-size:11px;fill:#333;">BLOCK only · D without LLMail seeds</text>
+<text x="1397.0" y="563.5" text-anchor="middle" style="font-size:11px;fill:#333;">fixed n-gram probe · tool-name baseline · 5 pre-registered</text>
+<text x="1397.0" y="578.5" text-anchor="middle" style="font-size:11px;fill:#333;">criteria</text>
+<text x="1397.0" y="593.5" text-anchor="middle" style="font-size:10.5px;fill:#3459a8;" font-family="Consolas, 'Courier New', monospace">experiments/mvp/results/</text>
+<rect x="1515.4" y="485" width="52.6" height="18" rx="9" fill="#7a7a7a"/>
+<text x="1541.7" y="497.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">WAITING</text>
+<path d="M1182,540 C1199.0,540 1199.0,148 1216,148" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M1397.0,482.0 L1397.0,492.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M999.0,634.0 L999.0,646.0 L1200.0,646.0 L1200.0,580.0 L1216.0,580.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M139.0,634.0 L139.0,652.0 L1208.0,652.0 L1208.0,364.0 L1216.0,364.0" fill="none" stroke="#a83a30" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+<rect x="24" y="666" width="1552" height="34" rx="6" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="800.0" y="688.0" text-anchor="middle" style="font-size:12px;fill:#222;font-weight:700;">python -m pipeline:  convert → plan_splits → libraries → proact → generate → build → deliver  (→ experiment)   ·   python -m pytest: 121 tests</text>
+<text x="24.0" y="726.0" text-anchor="start" style="font-size:11.5px;fill:#333;font-weight:700;">Still to do for an MVP result:</text>
+<text x="210.0" y="726.0" text-anchor="start" style="font-size:11.5px;fill:#444;">human reviews (Gates P, 1, 2) · finish generation and PROACT test runs · rebuild · run arms A0–D · realism probe · QC judge from another model</text>
+<text x="24.0" y="746.0" text-anchor="start" style="font-size:11.5px;fill:#333;font-weight:700;">Later phases:</text>
+<text x="210.0" y="746.0" text-anchor="start" style="font-size:11.5px;fill:#444;">REVIEW triples (G4) · executed shell sandbox (G5) · ToolRosetta re-rendering · benign shell · refuse branch · one-shot baseline arms · task tags</text>
+<rect x="24" y="769" width="14" height="14" rx="3" fill="#e6f2e3" stroke="#3a7d34" stroke-width="1.3"/>
+<text x="44.0" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">licensed real</text>
+<rect x="125.79" y="769" width="14" height="14" rx="3" fill="#fbe4e1" stroke="#a83a30" stroke-width="1.3"/>
+<text x="145.8" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">evaluation only</text>
+<rect x="239.24" y="769" width="14" height="14" rx="3" fill="#efe6f7" stroke="#6b3fa0" stroke-width="1.3"/>
+<text x="259.2" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">relabelled real</text>
+<rect x="352.69" y="769" width="14" height="14" rx="3" fill="#e2ebfa" stroke="#3459a8" stroke-width="1.3"/>
+<text x="372.7" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">synthetic</text>
+<rect x="431.15999999999997" y="769" width="14" height="14" rx="3" fill="#fff3d6" stroke="#b07d12" stroke-width="1.3"/>
+<text x="451.2" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">held out / evaluation</text>
+<rect x="579.5899999999999" y="769" width="14" height="14" rx="3" fill="#f0f0f0" stroke="#5a5a5a" stroke-width="1.3"/>
+<text x="599.6" y="780.0" text-anchor="start" style="font-size:11px;fill:#333;">control and outputs</text>
+<rect x="726.4" y="767" width="36.0" height="18" rx="9" fill="#3a7d34"/>
+<text x="744.4" y="779.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">DONE</text>
+<rect x="770.4" y="767" width="52.6" height="18" rx="9" fill="#3459a8"/>
+<text x="796.7" y="779.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">RUNNING</text>
+<rect x="831.0" y="767" width="63.6" height="18" rx="9" fill="#c26a00"/>
+<text x="862.8" y="779.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">NEEDS YOU</text>
+<rect x="902.6" y="767" width="52.6" height="18" rx="9" fill="#7a7a7a"/>
+<text x="928.8" y="779.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">WAITING</text>
+<rect x="963.1" y="767" width="41.5" height="18" rx="9" fill="#b3b3b3"/>
+<text x="983.9" y="779.5" text-anchor="middle" style="font-size:9.5px;fill:#fff;font-weight:700;">LATER</text>
+</svg>

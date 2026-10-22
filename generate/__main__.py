@@ -2,7 +2,7 @@
 
 Usage, from the project root:
     .venv/Scripts/python -m generate libraries                              # seed libraries from the split plan
-    .venv/Scripts/python -m generate proact --run proact-v1 [--limit 20]    # locate ATBench boundaries
+    .venv/Scripts/python -m generate proact --run proact-v1 [--limit 20] [--split test]   # locate ATBench boundaries
     .venv/Scripts/python -m generate proact-sheet --run proact-v1           # human check sheet (CSV)
     .venv/Scripts/python -m generate proact-import --run proact-v1 [--sheet filled.csv]
     .venv/Scripts/python -m generate proact-gate --run proact-v1            # Gate P
@@ -17,6 +17,7 @@ import json
 import sys
 
 from . import inject, libraries, proact, review
+from .logs import configure, level_from
 
 
 def main(argv=None) -> int:
@@ -29,6 +30,8 @@ def main(argv=None) -> int:
         Exit code: 0 on success, 3 if a run stopped on a quota (resume later).
     """
     parser = argparse.ArgumentParser(prog="python -m generate", description="Generation and annotation layer.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="log every model call (cache hits, call times)")
+    parser.add_argument("-q", "--quiet", action="store_true", help="log warnings and errors only")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("libraries", help="build seed libraries from the split plan")
     for name in ("proact", "proact-sheet", "proact-import", "proact-gate"):
@@ -36,6 +39,7 @@ def main(argv=None) -> int:
         p.add_argument("--run", required=True)
         if name == "proact":
             p.add_argument("--limit", type=int, default=None, help="judge at most this many unsafe runs")
+            p.add_argument("--split", choices=("train", "test"), default=None, help="judge only runs on this split")
         if name == "proact-import":
             p.add_argument("--sheet", default=None)
     p = sub.add_parser("inject")
@@ -51,11 +55,12 @@ def main(argv=None) -> int:
         if name == "review-import":
             p.add_argument("--sheet", required=True)
     args = parser.parse_args(argv)
+    configure(level_from(args.verbose, args.quiet))
 
     if args.command == "libraries":
         result = libraries.build()
     elif args.command == "proact":
-        result = proact.locate(args.run, args.limit)
+        result = proact.locate(args.run, args.limit, args.split)
     elif args.command == "proact-sheet":
         result = proact.write_sheet(args.run)
     elif args.command == "proact-import":

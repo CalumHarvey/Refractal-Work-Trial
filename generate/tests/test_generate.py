@@ -125,6 +125,41 @@ def test_plan_groups_is_deterministic_and_mixes_attacks():
     assert {g["operator"] for g in a} == {"single_step", "new_branch"}
 
 
+def test_plan_groups_pairs_attacks_with_fitting_contexts(monkeypatch):
+    """An attack goes to a context whose tools can carry out its effect, spread over those contexts;
+    with no fitting context any context is used, and without a requirement contexts rotate in order.
+
+    Args:
+        monkeypatch: pytest's monkeypatch fixture.
+
+    Raises:
+        AssertionError: If an attack lands on a context without a fitting tool, or rotation breaks.
+    """
+    def ctx(i, effect):
+        """A context seed with one side-effect tool.
+
+        Args:
+            i: Context number.
+            effect: The tool's side-effect kind.
+
+        Returns:
+            The context seed.
+        """
+        return {"record_id": f"c{i}", "side_effect_tools": ["t"], "tools": [{"name": "t", "side_effects": effect}]}
+    contexts = [ctx(0, "write"), ctx(1, "financial"), ctx(2, "write"), ctx(3, "financial")]
+    money = {"injecagent": [{"key": "injecagent:attack:m", "dataset": "injecagent", "kind": "dh",
+                             "attack_type": "Financial Harm"}]}
+    plans = inject.plan_groups(contexts, money, 6, "train")
+    chosen = [g["context"]["record_id"] for g in plans]
+    assert set(chosen) == {"c1", "c3"} and chosen.count("c1") == chosen.count("c3")   # payment tools only, spread evenly
+    assert len(inject.plan_groups(contexts[::2], money, 3, "train")) == 3   # no payment tool: any context
+    config = inject.generation_config()
+    monkeypatch.setattr(inject, "generation_config",
+                        lambda: {**config, "inject": {**config["inject"], "attack_mix": {"other": 1.0}}})
+    free = {"other": [{"key": "other:1", "dataset": "other"}]}
+    assert [g["context"]["record_id"] for g in inject.plan_groups(contexts, free, 5, "train")] == ["c0", "c1", "c2", "c3", "c0"]
+
+
 # ---- LLM client ------------------------------------------------------------------------------
 @pytest.fixture
 def offline(monkeypatch, tmp_path):
@@ -292,3 +327,33 @@ def test_judges_must_agree_samples_count_and_fallback_duplicates_do_not(monkeypa
     config["models"]["boundary_judges"] = ["m1", "m2"]
     used.update({"m1": "same", "m2": "same"})
     assert proact.judge_boundary(run, messages, [1, 2])["method"] == "unresolved"
+
+
+# ---- logging -----------------------------------------------------------------------------------
+def test_group_log_lines_and_run_log_file(caplog, tmp_path):
+    """Each group gets one line (kept with its judge total, or rejected with its reasons), and a run's
+    lines also land in its generate.log.
+
+    Args:
+        caplog: pytest's log capture fixture.
+        tmp_path: pytest's temporary directory.
+
+    Raises:
+        AssertionError: If a line or the log file is missing.
+    """
+    import logging
+
+    from generate import logs
+
+    row = {"group_id": "g1", "side": "train", "status": "kept", "reasons": [],
+           "attack": {"dataset": "llmail_inject"}, "context": {"record_id": "toucan:x"}}
+    info = {"cached": [False, False], "judge_total": 17, "operator": "new_branch"}
+    with logs.run_log(tmp_path) as path, caplog.at_level(logging.INFO, logger="generate"):
+        inject._log_group(1, 5, row, info, 2.0)
+        inject._log_group(2, 5, {**row, "group_id": "g2", "status": "rejected",
+                                 "reasons": ["no attacker-chosen value visible in the inserted text"]}, info, 1.0)
+    text = caplog.text
+    assert "[1/5] g1 kept" in text and "judge 17/18" in text and "api" in text
+    assert "[2/5] g2 REJECTED no attacker-chosen value" in text
+    assert "g2 REJECTED" in path.read_text(encoding="utf-8")
+    assert logs.level_from(True, False) == logging.DEBUG and logs.level_from(False, True) == logging.WARNING

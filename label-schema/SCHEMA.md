@@ -2,7 +2,7 @@
 
 2026-10-21 · Calum
 
-> Copy of the Claude Doc "Agent Decision Record Schema v0.7.0" (https://claude.ai/code/artifact/635d4c3f-b082-4a7f-84af-38a364963863), exported 2026-10-20, synced 2026-10-21 to doc rev 71 (mappings v0.7.0, schema v0.7.0). Keep both in sync when the schema changes.
+> Copy of the Claude Doc "Agent Decision Record Schema v0.7.0" (https://claude.ai/code/artifact/635d4c3f-b082-4a7f-84af-38a364963863), exported 2026-10-20, synced 2026-10-21 to doc rev 72 (mappings v0.7.1, schema v0.7.0). Keep both in sync when the schema changes.
 
 ## Purpose
 
@@ -256,6 +256,7 @@ Shared pieces at the top of the file: the decision policy, `origin_from_label_so
 | When2Call | step | Benign call / ask / decline decisions | The correct reply → ALLOW. An unwarranted tool call where asking or declining was right → REVIEW (hallucination / misinterpretation). Grouped by question and tool set |
 | ATBench steps (`atbench_steps`) | step | PROACT unrolling of ATBench (derived) | Safe run: every agent action ALLOW. Unsafe run: the first unsafe planned action (the boundary) is BLOCK with the run's modes; earlier actions ALLOW; later ones dropped. Boundary from ATBench's own markers (`as.boundary_marker`, rule_inferred), else from agreeing Gemini judges (`as.boundary_judges`, model_inferred); a human check overrides both (`as.boundary_human`). Runs with no single unsafe action give no steps. Attack labels only where the attack is already visible in the history |
 | Generated injections (`gen_inject`) | step | Injection, unauthorised calls, benign tool reuse (generated) | A real attack (InjecAgent instruction or LLMail email) planted in a real TOUCAN context's last tool output; one group gives three records sharing the prefix: the attacker's call BLOCK [16, 22], the agent's real next call ALLOW (hard negative), and the attack's tool used for a new ordinary request ALLOW (hard negative). Kept only after rule checks and a judge model |
+| RedCode | step | Risky shell / code execution requested by the user | One record per RedCode-Exec case and request variant (summary, details): the user asks for the script and the planned action runs it on a real TOUCAN shell or Python tool. Decision per risk category (BLOCK, or REVIEW for weaker ones), modes [principal_misuse] + the category's mode; code-quality categories excluded. Whole categories held out for validation and test |
 | R-Judge | trajectory | Calibration and evaluation only | `label` 0/1 → ALLOW/BLOCK. `attack_type` injection → [16] given (+22 if unsafe; safe ones are hard negatives; the first tool output is marked as the attack location); unintended → no attack, unsafe ones flagged for backfill from `risk_description` |
 
 **Source files** (downloaded 2026-10-20 to `data/raw/<dataset>/<commit>/`, each with a `manifest.json` of checksums):
@@ -348,6 +349,7 @@ The schema validates, but the mappings are a specification for converter scripts
 
 | Version | Change |
 | --- | --- |
+| mappings 0.7.1 | RedCode converted: 1,920 risky shell / Python execution steps (principal misuse) hosted on real TOUCAN shell tools; BLOCK / REVIEW per risk category; code-quality categories excluded; split by whole category. Build audit adds an action-surface shortcut check |
 | mappings 0.7.0, schema 0.7.0 | MVP of the generation pipeline: `source.derived_from`, `meta.generation`, `meta.lineage`; `atbench_steps` (PROACT unrolling) and `gen_inject` (generated injections) datasets and rules; InjecAgent grid split; derived sources follow their seeds; `eval_only` licence state for ToolSafe, R-Judge and MCPTox; `diagnostic` split |
 | mappings 0.6.7, schema 0.6.1 | Benign agent activity: TOUCAN, ToolACE and When2Call converters; `source.dataset` enum adds toucan, toolace, when2call, redcode and b3. Build: licence gate (config `licences`) leaves out ToolSafe, R-Judge, MCPTox and b3 |
 | mappings 0.6.6 | MCPTox converted: distinct labelled model reactions, tools parsed from the prompt, Success → BLOCK, Ignored or Refused → ALLOW, Direct Execution → REVIEW, Template-1 handled; task keys by query alone (generic queries recur across servers) |

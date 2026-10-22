@@ -7,16 +7,15 @@ taxonomy of agentic failure modes (v2.0), split without leakage, and delivered t
 
 ## Structure
 
+**What is built (the MVP):**
+
+![MVP flow](research/mvp-flow.svg)
+
+**The full framework design it is part of:**
+
 ![Agent-security data framework](research/data-framework.svg)
 
-*The full framework design ([research/data-framework.md](research/data-framework.md)). Implemented so far, as the MVP:*
-- *licence-gated splits;*
-- *PROACT unrolling of ATBench;*
-- *generation stages G1–G3 with QC, for the tool-output injection channel;*
-- *the evaluation tiers;*
-- *delivery to Jev.*
-
-*Not yet built: G4 context triples, G5 executed shell, and ToolRosetta re-rendering.*
+*The full framework design ([research/data-framework.md](research/data-framework.md)), with every part marked implemented, partial or not built. The MVP implements the injection-through-tool-output slice end to end; G4 context triples, G5 executed shell, ToolRosetta re-rendering, the realism probe and the error-driven loop are not built yet.*
 
 How the code runs it, stage by stage:
 
@@ -71,7 +70,7 @@ Model stages need `GEMINI_API_KEY`. Real delivery needs `JEV_API_KEY`. Full flag
 | [`config/`](config/README.md) | All settings: build, generation, delivery, pipeline |
 | [`label-schema/`](label-schema/README.md) | The record schema, dataset mappings and the schema guide |
 | [`data/`](data/README.md) | Every dataset, intermediate and output, by stage |
-| [`research/`](research/README.md) | Literature reviews, the data framework and the MVP plan |
+| [`research/`](research/README.md) | The dataset survey ([dataset-survey.md](research/dataset-survey.md)), literature reviews, the data framework and the MVP plan |
 
 ## Three kinds of data
 

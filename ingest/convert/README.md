@@ -11,6 +11,7 @@ One module per dataset; `ingest/run.py` discovers them automatically. Each defin
 | `toucan.py` | TOUCAN benign MCP runs (Apache-2.0) | real | step |
 | `toolace.py` | ToolACE benign calls (Apache-2.0) | real | step |
 | `when2call.py` | When2Call (CC BY 4.0) | real | step |
+| `redcode.py` | RedCode-Exec risky shell / Python execution (CC BY 4.0), hosted on real TOUCAN shell tools | real | step |
 | `toolsafe.py` | ToolSafe / TS-Bench (no licence: evaluation only) | real | step |
 | `r_judge.py` | R-Judge (no licence: evaluation only) | real | trajectory |
 | `mcptox.py` | MCPTox (no licence: evaluation only) | real | step |

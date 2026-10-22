@@ -1,6 +1,6 @@
 # Agent-security data framework
 
-*21 October 2026. This is a design framework only; nothing here is implemented yet. It combines the saved generation plan with the licence-gated real datasets and the Microsoft AI Red Team taxonomy v2.0 (19 single-agent security modes in scope). Background: [generation-integration.md](generation-integration.md), [auragen-adjacent-survey.md](auragen-adjacent-survey.md).*
+*21 October 2026; diagram updated 22 October 2026 to mark what is implemented (the MVP built part of it). It combines the saved generation plan with the licence-gated real datasets and the Microsoft AI Red Team taxonomy v2.0 (19 single-agent security modes in scope). Background: [generation-integration.md](generation-integration.md), [auragen-adjacent-survey.md](auragen-adjacent-survey.md).*
 
 ---
 
@@ -10,11 +10,9 @@
 
 *The diagram is a standalone SVG ([data-framework.svg](data-framework.svg)), so it renders in any viewer or browser.*
 
-**How to read it.** Data flows from top to bottom:
-- **Green:** licensed real data.
-- **Red:** unlicensed data, used only to measure.
-- **Blue:** processing and generation.
-- **Amber:** evaluation.
+**How to read it.** Data flows from left to right in six columns: sources, split, processing of real data, generation, build, and delivery and evaluation (with the loop back to the coverage matrix).
+- **Colours:** green licensed real data · red unlicensed data, used only to measure · purple relabelled real data (PROACT) · blue generated data · amber evaluation · grey control and outputs.
+- **Badges:** *implemented*, *partial* (built in a reduced form; the italic note says what is missing), *not built*, *deferred* or *excluded*.
 
 Every dataset is **split before anything is derived from it**. Only train-side pieces become seeds, so nothing generated can carry a test seed into training.
 

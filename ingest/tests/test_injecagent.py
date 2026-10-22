@@ -1,5 +1,3 @@
-import pytest
-
 from ingest.common.paths import raw_snapshot
 from ingest.common.validate import problems
 from ingest.convert import injecagent

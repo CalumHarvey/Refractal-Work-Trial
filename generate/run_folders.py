@@ -33,21 +33,6 @@ def run_dir(dataset: str, run: str) -> Path:
     return path
 
 
-def append_jsonl(path: Path, rows: list[dict]) -> None:
-    """Append rows to a JSONL file as canonical JSON.
-
-    Args:
-        path: The file.
-        rows: Rows to append.
-
-    Returns:
-        None.
-    """
-    with open(path, "a", encoding="utf-8") as f:
-        for row in rows:
-            f.write(dumps(row) + "\n")
-
-
 def write_jsonl(path: Path, rows: list[dict]) -> str:
     """Write rows to a JSONL file as canonical JSON, replacing it.
 

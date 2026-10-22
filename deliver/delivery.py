@@ -64,7 +64,7 @@ def run(run_id: str | None = None, selection: Selection | None = None, dry_run: 
     selected = select(selection)
     sent, error = {}, None
     with open(folder / "selected_index.jsonl", "w", encoding="utf-8") as index_file:
-        for split, rows in selected.items():
+        for rows in selected.values():
             for row in rows:
                 index_file.write(dumps(row) + "\n")
     try:

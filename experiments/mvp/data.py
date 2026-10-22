@@ -13,7 +13,7 @@ from functools import lru_cache
 from ingest.assembly.config import eval_only_datasets
 from ingest.common.paths import PROCESSED, TRAINING
 
-REAL_STEP_SOURCES = ("injecagent", "toucan", "toolace", "when2call")
+REAL_STEP_SOURCES = ("injecagent", "toucan", "toolace", "when2call", "redcode")
 
 
 @lru_cache(maxsize=None)
@@ -107,7 +107,7 @@ def _branch(row: dict) -> str | None:
 
 # ---- arms ----------------------------------------------------------------------------------
 ARMS = {
-    "A0": "Real only, no PROACT: InjecAgent A x A, TOUCAN / ToolACE / When2Call train",
+    "A0": "Real only, no PROACT: InjecAgent A x A, TOUCAN / ToolACE / When2Call / RedCode train",
     "A": "A0 + ATBench train steps from PROACT",
     "B": "A + all generated records",
     "C": "A + generated BLOCK branches only (no aware-ALLOW, no benign reuse)",
@@ -159,6 +159,8 @@ def eval_sets() -> dict[str, dict]:
                                           "Real agent outputs that ignored the injection (false positives under attack)"),
         "atbench_steps_test": (1, [r for r in test if r["dataset"] == "atbench_steps"],
                                "ATBench test runs unrolled by PROACT (second licensed maker)"),
+        "redcode_heldout_categories": (1, [r for r in test if r["dataset"] == "redcode"],
+                                       "RedCode risk categories never seen in training (shell / code execution)"),
         "benign_heldout": (1, [r for r in test if r["dataset"] in ("toucan", "toolace", "when2call") and r["decision"] == "ALLOW"],
                            "Held-out real benign traffic (over-defence)"),
         "diagnostic_generated": (3, list(training_rows("diagnostic")),

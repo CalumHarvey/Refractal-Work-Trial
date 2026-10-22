@@ -19,6 +19,7 @@ branches only; D = B without LLMail-seeded records. Label: ALLOW = 0, BLOCK or R
 | 1 | `injecagent_bxb` | Unseen user tasks and unseen attacks (grid B x B) |
 | 1 | `injecagent_bxb_hard_negatives` | Real agents ignoring the injection: false positives under attack |
 | 1 | `atbench_steps_test` | ATBench test runs unrolled by PROACT: a second licensed maker |
+| 1 | `redcode_heldout_categories` | RedCode risk categories never seen in training (shell / code execution) |
 | 1 | `benign_heldout` | Held-out TOUCAN / ToolACE / When2Call ALLOW: over-defence |
 | 2 | `tier2_toolsafe_*`, `tier2_mcptox_*` | Unlicensed, internal only, never trained on or sent to Gemini |
 | 3 | `diagnostic_generated` | Generated from held-out seeds; never a headline number |

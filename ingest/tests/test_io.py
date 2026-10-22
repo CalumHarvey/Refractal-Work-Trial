@@ -94,3 +94,65 @@ def test_interrupted_swap_is_recovered(processed):
     (processed / "demo").rename(processed / "demo.old")  # state after an interrupted swap
     io.Output("demo")
     assert _ids(processed / "demo") == ["a"] and not (processed / "demo.old").exists()
+
+
+def test_retry_io_waits_out_a_transient_lock(monkeypatch):
+    """A file briefly locked (EINVAL, as OneDrive causes) is retried; other errors are raised at once.
+
+    Args:
+        monkeypatch: pytest's monkeypatch fixture.
+
+    Raises:
+        AssertionError: If a transient error is not retried or a real one is swallowed.
+    """
+    import errno
+
+    import pytest
+
+    from ingest.common import io
+
+    monkeypatch.setattr(io.time, "sleep", lambda s: None)
+    calls = []
+
+    def flaky():
+        """Fail twice with EINVAL, then succeed.
+
+        Returns:
+            "ok" on the third call.
+
+        Raises:
+            OSError: On the first two calls.
+        """
+        calls.append(1)
+        if len(calls) < 3:
+            raise OSError(errno.EINVAL, "Invalid argument")
+        return "ok"
+
+    assert io.retry_io(flaky) == "ok" and len(calls) == 3
+
+    def missing():
+        """Fail with a non-transient error.
+
+        Raises:
+            FileNotFoundError: Always.
+        """
+        raise FileNotFoundError(errno.ENOENT, "missing")
+
+    with pytest.raises(FileNotFoundError):
+        io.retry_io(missing)
+
+
+def test_read_jsonl_keeps_unicode_line_separators(tmp_path):
+    """A U+2028 inside a JSON string does not split the row (str.splitlines would).
+
+    Args:
+        tmp_path: pytest's temporary directory.
+
+    Raises:
+        AssertionError: If the row is split.
+    """
+    from ingest.common import io
+
+    path = tmp_path / "x.jsonl"
+    path.write_text(io.dumps({"text": "a\u2028b"}) + "\n" + io.dumps({"n": 2}) + "\n", encoding="utf-8")
+    assert io.read_jsonl(path) == [{"text": "a\u2028b"}, {"n": 2}]

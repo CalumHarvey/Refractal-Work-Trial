@@ -15,6 +15,7 @@ stages: [convert, plan_splits, libraries, proact, generate, build, deliver]
 proact:
   run: proact-v1
   limit: null                 # judge at most this many unsafe runs per invocation (null = all remaining)
+  split: null                 # judge only runs on this split: test | train (null = every split)
 
 generate:
   run: inject-mvp

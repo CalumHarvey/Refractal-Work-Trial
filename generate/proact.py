@@ -14,6 +14,8 @@ human.jsonl, which overrides the located boundary (rule as.boundary_human).
 """
 import csv
 import json
+import logging
+import time
 from collections import Counter
 
 from ingest.assembly.split_plan import load_plan
@@ -24,9 +26,11 @@ from ingest.convert import atbench
 from . import llm
 from .config import generation_config
 from .prompts import BOUNDARY_PROMPT, BOUNDARY_SYSTEM, BOUNDARY_VERSION
+from .logs import run_log
 from .run_folders import read_jsonl, run_dir, write_jsonl, write_manifest
 
 DATASET = "atbench_steps"
+log = logging.getLogger("generate.proact")
 MAX_OUTPUT_CHARS = 1500
 
 
@@ -156,7 +160,7 @@ def judge_boundary(run: dict, messages: list[dict], points: list[int]) -> dict:
     return {"boundary": None, "method": "unresolved", "judges": answers}
 
 
-def locate(run_id: str, limit: int | None = None) -> dict:
+def locate(run_id: str, limit: int | None = None, split: str | None = None) -> dict:
     """Locate boundaries for every ATBench run and write the run folder.
 
     Resumable: runs already in boundaries.jsonl are skipped, except those whose judges failed
@@ -165,6 +169,8 @@ def locate(run_id: str, limit: int | None = None) -> dict:
     Args:
         run_id: Name of the run folder, e.g. "proact-v1".
         limit: Process at most this many new unsafe runs that need judges (for a pilot).
+        split: Judge only runs on this split of the plan ("train" or "test"); runs that need no
+            judges are located on every split. None judges every split.
 
     Returns:
         Counts by method and split, also written to the manifest.
@@ -175,37 +181,51 @@ def locate(run_id: str, limit: int | None = None) -> dict:
     plan = load_plan()
     snapshot = raw_snapshot("atbench")
     judged, stopped = 0, None
-    try:
-        for original_id, run in atbench.iter_source(snapshot):
-            if original_id in done and done[original_id]["method"] != "error":
-                continue
-            messages, marked = atbench.build_input(run)
-            points = decision_points(messages["messages"])
-            row = {"run_id": original_id, "label": run["label"], "split": plan.get(f"atbench:{original_id}"),
-                   "decision_points": points, "marked": marked, "boundary": None, "method": None,
-                   "rule_reason": None, "judges": {}}
-            if run["label"] == 0:
-                row["method"] = "safe"
-            elif not points:
-                row["method"] = "no_actions"
-            else:
-                boundary, reason = rule_boundary(points, marked)
-                if boundary is not None:
-                    row.update(boundary=boundary, method="marker", rule_reason=reason)
+    with run_log(folder) as log_path:
+        log.info("PROACT run %s: %d runs already located; judging %s%s; log file %s", run_id, len(done),
+                 "all remaining" if limit is None else f"at most {limit}", f" on the {split} split" if split else "", log_path)
+        started = time.monotonic()
+        try:
+            for original_id, run in atbench.iter_source(snapshot):
+                if original_id in done and done[original_id]["method"] != "error":
+                    continue
+                messages, marked = atbench.build_input(run)
+                points = decision_points(messages["messages"])
+                row = {"run_id": original_id, "label": run["label"], "split": plan.get(f"atbench:{original_id}"),
+                       "decision_points": points, "marked": marked, "boundary": None, "method": None,
+                       "rule_reason": None, "judges": {}}
+                if run["label"] == 0:
+                    row["method"] = "safe"
+                elif not points:
+                    row["method"] = "no_actions"
                 else:
-                    if limit is not None and judged >= limit:
-                        continue
-                    row.update(judge_boundary(run, messages["messages"], points))
-                    judged += 1
-            done[original_id] = row
-            if len(done) % 25 == 0:
-                write_jsonl(path, list(done.values()))
-    except llm.QuotaExhausted as exc:
-        stopped = str(exc)
-    write_jsonl(path, list(done.values()))
-    counts = {"by_method": dict(Counter(r["method"] for r in done.values())),
-              "by_split_and_method": dict(Counter(f"{r['split']}:{r['method']}" for r in done.values())),
-              "runs": len(done)}
+                    boundary, reason = rule_boundary(points, marked)
+                    if boundary is not None:
+                        row.update(boundary=boundary, method="marker", rule_reason=reason)
+                    else:
+                        if (limit is not None and judged >= limit) or (split and row["split"] != split):
+                            continue
+                        t0 = time.monotonic()
+                        row.update(judge_boundary(run, messages["messages"], points))
+                        judged += 1
+                        votes = [a.get("step") for a in row["judges"].values()]
+                        log.info("run %s (%s): %s%s  votes %s  %.1fs", original_id, row["split"], row["method"],
+                                 f" at action {points.index(row['boundary']) + 1}" if row["boundary"] is not None else "",
+                                 votes, time.monotonic() - t0)
+                        if judged % 10 == 0:
+                            per = (time.monotonic() - started) / judged
+                            log.info("progress: %d runs judged, %.1fs per run", judged, per)
+                done[original_id] = row
+                if len(done) % 25 == 0:
+                    write_jsonl(path, list(done.values()))
+        except llm.QuotaExhausted as exc:
+            stopped = str(exc)
+            log.warning("stopped on a daily quota after judging %d runs; run the same command later to resume", judged)
+        write_jsonl(path, list(done.values()))
+        counts = {"by_method": dict(Counter(r["method"] for r in done.values())),
+                  "by_split_and_method": dict(Counter(f"{r['split']}:{r['method']}" for r in done.values())),
+                  "runs": len(done)}
+        log.info("done: %d judged now; run total %d, by method %s", judged, len(done), counts["by_method"])
     write_manifest(folder, DATASET, run_id, "boundaries.jsonl", {
         "parents": {"atbench": json.loads((snapshot / "manifest.json").read_text(encoding="utf-8"))["revision"]},
         "models": generation_config()["models"]["boundary_judges"],

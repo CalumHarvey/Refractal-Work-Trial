@@ -11,6 +11,7 @@ because the free tier lets Google use and read what is sent.
 """
 import hashlib
 import json
+import logging
 import os
 import re
 import time
@@ -23,6 +24,7 @@ from ingest.common.paths import ROOT
 
 from .config import generation_config
 
+log = logging.getLogger("generate.llm")
 _LAST_CALL: dict[str, float] = {}
 _EXHAUSTED: set[str] = set()  # models whose daily quota ran out in this process
 
@@ -97,6 +99,7 @@ def _throttle(model: str) -> None:
     gap = 60.0 / max(1, _settings()["requests_per_minute"])
     wait = _LAST_CALL.get(model, 0.0) + gap - time.monotonic()
     if wait > 0:
+        log.debug("throttle %s: waiting %.1fs (requests_per_minute)", model, wait)
         time.sleep(wait)
     _LAST_CALL[model] = time.monotonic()
 
@@ -172,17 +175,27 @@ def _post(model: str, payload: dict) -> dict:
                 body = {}
             last_error = f"HTTP {exc.code}: {(body.get('error') or {}).get('message', '')[:300]}"
             if exc.code == 429 and _is_daily_quota(body):
+                log.error("%s: daily quota used up; stopping (re-run later to resume from the cache)", model)
                 raise QuotaExhausted(f"{model}: daily quota used up; re-run later to resume ({last_error})") from exc
             if exc.code not in (429, 500, 502, 503, 504):
+                log.error("%s: request rejected: %s", model, last_error)
                 raise LLMError(f"{model}: {last_error}") from exc
             if exc.code == 503:
                 overloads += 1
                 if overloads > settings.get("overload_retries", 2):
+                    log.warning("%s: still overloaded after %d tries; giving up on this call", model, overloads)
                     raise Overloaded(f"{model}: overloaded ({last_error})") from exc
-            time.sleep(_retry_delay(body) or min(60.0, 2.0 ** attempt * 2))
+            delay = _retry_delay(body) or min(60.0, 2.0 ** attempt * 2)
+            reason = {429: "rate limited", 503: "overloaded"}.get(exc.code, f"server error {exc.code}")
+            log.warning("%s: %s; retrying in %.0fs (attempt %d/%d)", model, reason, delay, attempt + 1,
+                        settings["max_retries"] + 1)
+            time.sleep(delay)
         except (urllib.error.URLError, TimeoutError) as exc:
             last_error = str(exc)
-            time.sleep(min(60.0, 2.0 ** attempt * 2))
+            delay = min(60.0, 2.0 ** attempt * 2)
+            log.warning("%s: network error (%s); retrying in %.0fs (attempt %d/%d)", model, str(exc)[:120], delay,
+                        attempt + 1, settings["max_retries"] + 1)
+            time.sleep(delay)
     raise LLMError(f"{model}: gave up after {settings['max_retries'] + 1} attempts ({last_error})")
 
 
@@ -266,13 +279,18 @@ def _generate_one(model: str, prompt: str, system: str | None, temperature: floa
     path = _cache_path(model, key)
     if path.exists():
         cached = json.loads(path.read_text(encoding="utf-8"))
+        log.debug("%s: cache hit %s", model, key[:12])
         return {"value": parse_json(cached["text"]), "model": model, "model_version": cached.get("model_version"),
                 "cached": True, "key": key}
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
                "generationConfig": {"temperature": temperature, "responseMimeType": "application/json"}}
     if system:
         payload["systemInstruction"] = {"parts": [{"text": system}]}
+    started = time.monotonic()
     body = _post(model, payload)
+    usage = body.get("usageMetadata") or {}
+    log.debug("%s: answered in %.1fs (%s tokens in, %s out)", model, time.monotonic() - started,
+              usage.get("promptTokenCount"), usage.get("candidatesTokenCount"))
     text = _reply_text(body)
     value = parse_json(text)  # only cache replies that parse
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -322,9 +340,13 @@ def generate_json(model: str, prompt: str, *, datasets: list[str], system: str |
             return _generate_one(name, prompt, system, temperature, sample)
         except Overloaded as exc:
             last = exc
+            if name != candidates[-1]:
+                log.warning("%s overloaded; falling back to the next model", name)
         except QuotaExhausted as exc:
             _EXHAUSTED.add(name)
             last = exc
+            if name != candidates[-1]:
+                log.warning("%s out of daily quota; falling back to the next model", name)
     if last is None:
         raise QuotaExhausted(f"daily quota used up for {candidates}; re-run later to resume")
     if isinstance(last, Overloaded) and all(c in _EXHAUSTED for c in candidates[1:]) and candidates[1:]:

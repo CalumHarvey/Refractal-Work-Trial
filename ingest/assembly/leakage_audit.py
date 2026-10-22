@@ -5,6 +5,8 @@ itself, which keys can miss:
 - overlap: evaluation records whose instruction, history, planned action or injected tool output
   also occurs (normalised) in train, plus near-duplicate instructions under different keys;
 - shortcuts: how well the planned tool's name alone predicts the decision, per source;
+- surface: across all sources, how far the action's form alone (shell / code, tool call, final
+  answer) predicts the decision, e.g. "every shell command is BLOCK";
 - markers: dataset names and generator markers in the Jev events (which must be source-blind).
 Anything suspicious becomes a line in "warnings", which build.py prints.
 """
@@ -14,10 +16,12 @@ from collections import Counter, defaultdict
 
 from ..common.text import normalise
 from .config import build_config, source_key
+from .derive import action_surface
 
 EVAL_SPLITS = ("validation", "test", "holdout", "diagnostic")
 NEAR_DUP_JACCARD = 0.7
 SHORTCUT_MARGIN = 0.15
+SURFACE_BLOCK_SHARE = 0.8  # warn when this share of train shell / code actions is BLOCK or REVIEW
 
 
 def _h(value) -> str:
@@ -181,6 +185,30 @@ def shortcuts(records: list[dict], splits: dict[str, str]) -> dict:
     return out
 
 
+def surface(records: list[dict], splits: dict[str, str]) -> dict:
+    """Measure how much the action's form alone says about the decision, across all sources.
+
+    A model that learns "shell or code execution means BLOCK" would score well on data where that holds
+    and fail on benign shell use. This reports, per split, the decisions behind each action surface, and
+    in train the share of shell / code actions that are not ALLOW.
+
+    Args:
+        records: All records.
+        splits: `{record_id: split}`.
+
+    Returns:
+        `{"by_split": {split: {surface: {decision: n}}}, "train_shell_not_allow_share": float | None}`.
+    """
+    by_split = defaultdict(lambda: defaultdict(Counter))
+    for r in records:
+        if r["granularity"] == "step":
+            by_split[splits[r["record_id"]]][action_surface(r)][str(r["labels"]["decision"])] += 1
+    shell = by_split.get("train", {}).get("shell_or_code", Counter())
+    total = sum(shell.values())
+    return {"by_split": {k: {s: dict(c) for s, c in v.items()} for k, v in by_split.items()},
+            "train_shell_not_allow_share": round(1 - shell.get("ALLOW", 0) / total, 3) if total else None}
+
+
 def markers(events_by_split: dict[str, list[dict]]) -> dict:
     """Count source-revealing strings in the Jev events.
 
@@ -209,9 +237,10 @@ def run(records: list[dict], splits: dict[str, str], events_by_split: dict[str, 
         events_by_split: `{split: [Jev event, ...]}`.
 
     Returns:
-        `{"overlap", "shortcuts", "markers", "warnings": [str]}`.
+        `{"overlap", "shortcuts", "surface", "markers", "warnings": [str]}`.
     """
     ov, sc, mk = overlap(records, splits), shortcuts(records, splits), markers(events_by_split)
+    sf = surface(records, splits)
     warnings = []
     for feature, by_split in ov.pop("_hits").items():
         for split_name, n in by_split.items():
@@ -225,4 +254,8 @@ def run(records: list[dict], splits: dict[str, str], events_by_split: dict[str, 
     for split_name, counts in mk.items():
         if counts:
             warnings.append(f"markers in {split_name} events: {counts}")
-    return {"overlap": ov, "shortcuts": sc, "markers": mk, "warnings": warnings}
+    share = sf["train_shell_not_allow_share"]
+    if share is not None and share >= SURFACE_BLOCK_SHARE:
+        warnings.append(f"{share:.0%} of train shell / code actions are BLOCK or REVIEW: the action's form alone "
+                        f"predicts the label (add benign shell use)")
+    return {"overlap": ov, "shortcuts": sc, "surface": sf, "markers": mk, "warnings": warnings}

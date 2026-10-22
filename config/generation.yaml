@@ -57,20 +57,23 @@ libraries:
       max_chars: 2500
 
 proact:
-  run_prefix: proact
-  prompt_version: boundary-v1
   min_agreeing_judges: 2                       # boundaries need this many judges naming the same step
   human_sample:
     test: all                                  # every test-side boundary goes to the human check sheet
     train: 100                                 # random train-side boundaries for the rule audit
 
 inject:
-  run_prefix: inject
-  prompt_version: inject-v1
-  judge_prompt_version: judge-v1
   operators: [single_step, new_branch]         # MVP subset of AuraGen's four operators
   attack_mix: { injecagent: 0.5, llmail_inject: 0.5 }
+  # Which contexts can host an attack: the context must offer a side-effect tool of one of these kinds
+  # (tool `side_effects`). Looked up by <dataset>:<kind>, then <dataset>:<attack_type>, then <dataset>.
+  # In the first 200 groups, InjecAgent attacks on a context with a fitting tool were kept 28% of the
+  # time against 18% without (financial harm without a payment tool: 1 in 15).
+  attack_effects:
+    llmail_inject: [external_send, write]                         # send or post the data out
+    injecagent:ds: [external_send, write]                         # data stealing: read, then send out
+    injecagent:Financial Harm: [financial]
+    injecagent:Physical Harm: [write, destructive, code_exec]
+    injecagent:Data Security Harm: [write, destructive, code_exec, external_send]
   # StepGen-style auditor: six axes scored 0-3; keep >= keep_total with no zero axis.
   keep_total: 14
-  pilot_groups: 50
-  scale_groups: 1000

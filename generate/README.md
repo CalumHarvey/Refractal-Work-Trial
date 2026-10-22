@@ -19,8 +19,9 @@ so rebuilding never spends money or changes labels. Design: [research/implementa
 | `run_folders.py` | Run folders and manifests. A run's `revision` hashes its main file, so its converted output goes stale when the run changes |
 | `libraries.py` | Seed libraries from the split plan: train side (TOUCAN train contexts, InjecAgent grid side A, LLMail phase 1) and diagnostic side (TOUCAN test contexts, grid side B, LLMail phase 2) |
 | `proact.py` | PROACT boundaries for ATBench runs (rule first, then agreeing judges), the human check sheet, its import, Gate P |
-| `inject.py` | The `inject_on_context` family: plan groups, generate, deterministic checks, QC judge, write `groups.jsonl` |
+| `inject.py` | The `inject_on_context` family: plan groups (each attack on a context whose tools can carry out its effect, `inject.attack_effects`), generate, deterministic checks, QC judge, write `groups.jsonl` |
 | `review.py` | Human review of generated groups: sheets, import, Gate 1 / Gate 2, calibration entries |
+| `logs.py` | Console logging and the per-run `generate.log` |
 | `__main__.py` | The `python -m generate` command (each step on its own) |
 | [`tests/`](tests/README.md) | Tests that need no network |
 
@@ -37,9 +38,22 @@ human-in-the-loop steps run here:
 | Import it, then Gate 1 / Gate 2 and calibration entries | `python -m generate review-import --run inject-mvp --sheet <filled csv>` then `review-gate` |
 
 Each step also runs on its own: `python -m generate libraries | proact | inject ...` (see `--help`).
+`proact --split test` judges only the test runs (the Tier 1 set); `inject --groups N` brings a side up to N groups.
 The PROACT sheet is `data/derived/atbench_steps/<run>/human_check.csv`, with transcripts beside it.
 The review sheets are `data/generated/gen_inject/<run>/review_all.csv` or `review_sample.csv`, with
 `review_groups.md` beside them.
+
+## Logging
+
+Generation logs one line per group: kept with its judge total, or rejected with its reasons, plus which
+context and attack it used, how long it took, and whether the calls came from the cache. Every 10 groups
+there is a progress line (yield so far, time per group, estimated time left), and at the end a summary
+with rejection counts. PROACT logs one line per judged run with the judges' votes.
+
+The Gemini client logs every wait and retry: rate limits, overload, network errors, quota stops and
+fallbacks. Each run also writes its lines, with call-level detail, to `<run folder>/generate.log`.
+On the console, `-v` adds call-level detail (cache hits, call times, tokens) and `-q` shows only warnings;
+both commands take these flags: `python -m generate -v inject ...` and `python -m pipeline -v`.
 
 ## Free tier: what to expect
 

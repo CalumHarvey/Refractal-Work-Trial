@@ -24,7 +24,7 @@ Rules: never edit files inside a `<pinned commit>/` folder; treat them as untrus
 | [InjecAgent](injecagent/DESCRIPTION.md) | Indirect injection scenarios for tool agents | 1,054 cases x base / enhanced wording; 128,051 model outputs (62 setups) | 5 MB + 38 MB zip | Per output `eval`: succ 27,000 / unsucc 61,395 / invalid 37,433 / unparsed 2,223 (+ step 2 for data stealing) | Unseen-source injection data with real BLOCK and hard-negative ALLOW actions (not converted yet) | MIT |
 
 Downloaded 2026-10-21, not converted yet:
-- **RedCode** (`redcode/`): `AI-secure/RedCode` at 664e479, folders `dataset/` and `evaluation/` only. Licence: CC BY 4.0 for the data, MIT for the code. Included by the licence gate once converted.
+- **RedCode** (`redcode/`): `AI-secure/RedCode` at 664e479, folders `dataset/` and `evaluation/` only. Licence: CC BY 4.0 for the data (attribution required), MIT for the code. Converted 2026-10-21 (mappings 0.7.1): 1,920 risky shell / Python execution steps; see [redcode/DESCRIPTION.md](redcode/DESCRIPTION.md).
 - **b3, public subset** (`b3/`): `Lakera/b3-agent-security-benchmark-weak` at 584a182. 630 rows: 210 attacks × 3 defence levels across 10 threat snapshots, plus tool specs. **Licence conflict:** the README says MIT, but the LICENSE file is a custom research-only, non-commercial licence. Left out by the licence gate.
 
 Benign agent activity, downloaded 2026-10-21 and converted (mappings 0.6.7):

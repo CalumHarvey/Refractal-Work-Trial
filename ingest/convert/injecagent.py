@@ -9,7 +9,6 @@ kept, the most frequent first, up to `selection.max_actions_per_label` per decis
 R-Judge's injection runs are InjecAgent cases (GPT-4 outputs relabelled by humans) and R-Judge is a
 holdout source, so every case R-Judge contains is excluded here (both wordings, both steps).
 """
-import hashlib
 import json
 import re
 import warnings

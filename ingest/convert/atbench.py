@@ -48,7 +48,6 @@ class UnmappedCategory(ValueError):
 
     The run then becomes a reject rather than a silently wrong record.
     """
-    pass
 
 
 # ---- raw input ---------------------------------------------------------------------------

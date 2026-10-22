@@ -18,6 +18,7 @@ from functools import lru_cache
 import yaml
 
 from deliver.__main__ import add_selection_arguments, selection_from
+from generate.logs import configure, level_from
 from ingest.common.paths import ROOT
 
 from .stages import MODEL_STAGES, RUNNERS, STAGES, QuotaStop, Settings, StageFailed
@@ -52,9 +53,12 @@ def parse(argv=None) -> argparse.Namespace:
     which.add_argument("--offline", action="store_true", help=f"no model calls: skip {', '.join(MODEL_STAGES)}")
     which.add_argument("--experiment", action="store_true", help="also run the MVP experiment at the end")
     which.add_argument("--list", action="store_true", help="print the stages that would run, and stop")
+    which.add_argument("-v", "--verbose", action="store_true", help="log every model call (cache hits, call times)")
+    which.add_argument("-q", "--quiet", action="store_true", help="log warnings and errors only")
     models = parser.add_argument_group("model stages")
     models.add_argument("--proact-run", help="PROACT run folder (default: config)")
     models.add_argument("--proact-limit", type=int, help="judge at most this many unsafe ATBench runs")
+    models.add_argument("--proact-split", choices=("train", "test"), help="judge only ATBench runs on this split")
     models.add_argument("--inject-run", help="generation run folder (default: config)")
     models.add_argument("--groups", type=int, help="train-side groups to have in the generation run")
     models.add_argument("--diagnostic-groups", type=int, help="diagnostic-side groups to have")
@@ -105,6 +109,7 @@ def settings_from(args: argparse.Namespace) -> Settings:
     dry_run = False if args.send else True if args.dry_run else cfg["deliver"]["dry_run"]
     return Settings(proact_run=args.proact_run or cfg["proact"]["run"],
                     proact_limit=args.proact_limit if args.proact_limit is not None else cfg["proact"]["limit"],
+                    proact_split=args.proact_split or cfg["proact"].get("split"),
                     inject_run=args.inject_run or cfg["generate"]["run"], groups=groups,
                     deliver_run=args.deliver_run or cfg["deliver"]["run"], dry_run=dry_run,
                     selection=selection_from(args),
@@ -126,6 +131,7 @@ def main(argv=None) -> int:
         print(" -> ".join(stages))
         return 0
     settings = settings_from(args)
+    configure(level_from(args.verbose, args.quiet))
     on_quota = pipeline_config().get("on_quota", "continue")
     summary, code, quota_hit = {}, 0, False
     for stage in stages:
@@ -142,6 +148,11 @@ def main(argv=None) -> int:
                 break
         except (StageFailed, ValueError, FileNotFoundError) as exc:
             summary[stage] = {"status": "failed", "detail": str(exc)[:300]}
+            code = 1
+            break
+        except OSError as exc:  # e.g. a file still locked by OneDrive after the retries
+            summary[stage] = {"status": "failed", "detail": f"{exc} (a file may be locked by a sync client; "
+                                                            f"re-run with --from {stage})"}
             code = 1
             break
     print(json.dumps(summary, indent=2))

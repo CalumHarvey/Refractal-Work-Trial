@@ -27,6 +27,7 @@ class Settings:
     Attributes:
         proact_run: PROACT run folder.
         proact_limit: Judge at most this many unsafe runs (None = all remaining).
+        proact_split: Judge only runs on this split ("train" or "test"; None = every split).
         inject_run: Generation run folder.
         groups: Groups to have per side, e.g. {"train": 50, "diagnostic": 0}.
         deliver_run: Delivery folder name (None = timestamp).
@@ -45,6 +46,7 @@ class Settings:
     selection: object = None
     seeds: int = 3
     reference: int = 0
+    proact_split: str | None = None
 
 
 def convert(settings: Settings) -> dict:
@@ -112,7 +114,7 @@ def proact(settings: Settings) -> dict:
     """Locate PROACT boundaries (resumes an existing run).
 
     Args:
-        settings: Pipeline settings (proact_run, proact_limit).
+        settings: Pipeline settings (proact_run, proact_limit, proact_split).
 
     Returns:
         Counts by method.
@@ -122,7 +124,7 @@ def proact(settings: Settings) -> dict:
     """
     from generate import proact as pro
 
-    result = pro.locate(settings.proact_run, settings.proact_limit)
+    result = pro.locate(settings.proact_run, settings.proact_limit, settings.proact_split)
     if result.get("stopped"):
         raise QuotaStop(result["stopped"])
     return {"by_method": result["by_method"]}
